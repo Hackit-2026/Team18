@@ -103,26 +103,37 @@ body {
 
 .video-controls {
   position: absolute; left: 0; right: 0; bottom: 0;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: flex-end;
   flex-wrap: wrap;
   gap: 10px 12px; padding: 14px 16px;
   background: linear-gradient(to top, rgba(8,9,13,.9), rgba(8,9,13,0));
+  z-index: 3;
 }
 .ctrl-right { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; }
 
-.mic-state {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(0,0,0,.35); color: var(--muted);
-  font-size: 13px; user-select: none;
+/* ---- ニコニコ風の流れるコメント ---- */
+.danmaku-layer {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
 }
-.mic-state.active {
-  color: #fff; border-color: var(--accent);
-  background: rgba(255,122,51,.25);
+.danmaku-item {
+  position: absolute;
+  left: 100%;
+  white-space: nowrap;
+  font-size: clamp(14px, 2.4vw, 22px);
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.6);
+  animation: danmaku-move linear forwards;
+}
+.danmaku-item .name { margin-right: 6px; opacity: .9; }
+@keyframes danmaku-move {
+  from { left: 100%; }
+  to { left: -100%; }
 }
 
-.mode-label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 select, input[type="range"] { accent-color: var(--accent); }
 select {
   background: var(--panel-2); color: var(--text);
@@ -153,11 +164,20 @@ select {
 }
 .chat-head {
   display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap;
   padding: 12px 14px; border-bottom: 1px solid var(--line);
   font-weight: 700; font-size: 14px;
+  gap: 8px;
 }
-.pace { font-size: 11px; color: var(--muted); font-weight: 400; display: flex; align-items: center; gap: 6px; }
-.pace input { width: 90px; }
+.display-toggle { display: flex; gap: 6px; }
+.toggle-btn {
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--muted);
+  font-size: 12px; font-weight: 600; border-radius: 999px;
+  padding: 6px 10px; cursor: pointer;
+  transition: filter .15s ease;
+}
+.toggle-btn:hover { filter: brightness(1.1); }
+.toggle-btn.active { background: var(--accent); color: #1a1200; border-color: var(--accent); }
 
 .chat-list {
   flex: 1 1 auto;
@@ -190,6 +210,9 @@ select {
   border-top: 1px solid var(--line);
 }
 
+/* コメント流し（ニコニコ風）モード中は、チャット欄の一覧を隠す */
+.chat-wrap.mode-flow .chat-list { display: none; }
+
 /* ---- 振り返りモーダル ---- */
 .modal {
   position: fixed; inset: 0;
@@ -209,11 +232,14 @@ select {
 @media (max-width: 820px) {
   .stage {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(220px, 1.3fr) minmax(160px, 1fr);
+    /* 映像を上・チャット欄を下に。チャット欄の見出し（切り替えボタン）が
+       画面上部寄りで常に操作しやすいよう、映像側の高さを控えめにする */
+    grid-template-rows: minmax(200px, 1fr) minmax(200px, 1.05fr);
     padding: 10px;
     gap: 10px;
   }
   .video-controls { padding: 10px 12px; }
+  .chat-head { padding: 10px 12px; }
 }
 
 /* スマホ幅: 余白・文字量を詰めて、ボタンをタップしやすくする */
@@ -226,14 +252,16 @@ select {
 
   .video-controls { flex-direction: column; align-items: stretch; }
   .ctrl-right { justify-content: space-between; }
-  .mode-label select,
+  select,
   #cameraSelect { flex: 1; }
-
-  .mic-state { justify-content: center; }
 
   .btn, select { font-size: 15px; }
   .btn { min-height: 44px; }
   select { min-height: 40px; }
+
+  .chat-head { flex-direction: column; align-items: stretch; }
+  .display-toggle { justify-content: stretch; }
+  .toggle-btn { flex: 1; font-size: 13px; padding: 8px 10px; min-height: 36px; }
 
   .chat-note { padding: 8px 12px; }
 }

@@ -9,14 +9,14 @@ const els = {
   startOverlay: document.getElementById("startOverlay"),
   startBtn: document.getElementById("startBtn"),
   videoControls: document.getElementById("videoControls"),
-  micState: document.getElementById("micState"),
   stopBtn: document.getElementById("stopBtn"),
-  modeSelect: document.getElementById("modeSelect"),
   cameraLabel: document.getElementById("cameraLabel"),
   cameraSelect: document.getElementById("cameraSelect"),
-  paceRange: document.getElementById("paceRange"),
+  chatWrap: document.getElementById("chatWrap"),
   chatList: document.getElementById("chatList"),
   chatNote: document.getElementById("chatNote"),
+  displayToggle: document.getElementById("displayToggle"),
+  danmakuLayer: document.getElementById("danmakuLayer"),
   liveBadge: document.getElementById("liveBadge"),
   viewers: document.getElementById("viewers"),
   summaryModal: document.getElementById("summaryModal"),
@@ -34,6 +34,7 @@ const state = {
   log: [],               // 表示したコメントのログ（振り返り用）
   viewers: 0,
   nameColors: {},
+  displayMode: "chat", // "chat" = チャット欄 / "flow" = ニコニコ風に流す
   // 音声まわり
   audioCtx: null,
   analyser: null,
@@ -45,6 +46,9 @@ const state = {
   segStartAt: 0,
   sending: false,        // 音声送信中フラグ
 };
+
+// 映像フレームを送信する間隔
+const CAPTURE_INTERVAL_MS = 5000;
 
 // ---- 発話区切りの調整パラメータ ----
 const VAD = {
@@ -170,11 +174,10 @@ els.cameraSelect.addEventListener("change", () => {
 // ==========================================================
 function scheduleCapture() {
   if (!state.live) return;
-  const pace = parseInt(els.paceRange.value, 10) || 5000;
   state.captureTimer = setTimeout(async () => {
     await sendFrame();
     scheduleCapture();
-  }, pace);
+  }, CAPTURE_INTERVAL_MS);
 }
 
 function grabFrameDataURL() {
@@ -202,7 +205,6 @@ async function sendFrame() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         image,
-        mode: els.modeSelect.value,
         history: state.history.slice(-8),
       }),
     });
@@ -227,6 +229,18 @@ function staggerComments(comments) {
 // ==========================================================
 // 画面に表示する視聴者コメント
 function addMessage(name, text, type) {
+  if (state.displayMode === "flow") {
+    addFlowComment(name, text);
+  } else {
+    addChatMessage(name, text, type);
+  }
+
+  pushHistory(name, text);
+  state.log.push({ name, text });
+}
+
+// 通常のチャット欄表示
+function addChatMessage(name, text, type) {
   const div = document.createElement("div");
   div.className = "msg";
   const badge = type ? `<span class="badge">${escapeHtml(type)}</span>` : "";
@@ -237,10 +251,42 @@ function addMessage(name, text, type) {
   div.querySelector(".text").textContent = text;
   els.chatList.appendChild(div);
   els.chatList.scrollTop = els.chatList.scrollHeight;
-
-  pushHistory(name, text);
-  state.log.push({ name, text });
 }
+
+// ニコニコ風: 映像の上を右から左にコメントを流す
+function addFlowComment(name, text) {
+  const div = document.createElement("div");
+  div.className = "danmaku-item";
+  div.innerHTML =
+    `<span class="name"></span><span class="text"></span>`;
+  div.querySelector(".name").textContent = name;
+  div.querySelector(".name").style.color = colorFor(name);
+  div.querySelector(".text").textContent = text;
+
+  const lane = Math.floor(Math.random() * 8); // 8段のレーンに分けて重なりを減らす
+  div.style.top = 6 + lane * 11 + "%";
+
+  const len = (name.length + text.length) || 10;
+  const duration = Math.min(12, Math.max(6, len * 0.28));
+  div.style.animationDuration = duration + "s";
+
+  div.addEventListener("animationend", () => div.remove());
+  els.danmakuLayer.appendChild(div);
+}
+
+// ---- コメント表示モードの切り替え ----
+els.displayToggle.addEventListener("click", (e) => {
+  const btn = e.target.closest(".toggle-btn");
+  if (!btn) return;
+  const mode = btn.dataset.mode;
+  if (mode === state.displayMode) return;
+  state.displayMode = mode;
+
+  els.displayToggle.querySelectorAll(".toggle-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.mode === mode);
+  });
+  els.chatWrap.classList.toggle("mode-flow", mode === "flow");
+});
 
 // 画面には出さず、AIへの文脈だけに残す（自分の発言はこちら）
 function pushHistory(name, text) {
@@ -295,12 +341,6 @@ function startVoiceDetection() {
         endSegment(dur);
       }
     }
-
-    // 聞き取り中インジケータ
-    if (els.micState) {
-      els.micState.textContent = state.speaking ? "🎤 聞き取り中…" : "🎤 音声待機中";
-      els.micState.classList.toggle("active", state.speaking);
-    }
   }, 100);
 }
 
@@ -345,7 +385,6 @@ async function onSegmentStop() {
   state.sending = true;
   const form = new FormData();
   form.append("audio", blob, "speech.webm");
-  form.append("mode", els.modeSelect.value);
   form.append("history", JSON.stringify(state.history.slice(-8)));
 
   try {
