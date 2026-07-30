@@ -31,35 +31,25 @@
         </div>
 
         <div class="video-controls" id="videoControls" hidden>
-          <span class="mic-state" id="micState">🎤 音声待機中</span>
           <div class="ctrl-right">
             <label class="mode-label" id="cameraLabel" hidden>
               カメラ
               <select id="cameraSelect"></select>
             </label>
-            <label class="mode-label">
-              シーン
-              <select id="modeSelect">
-                <option value="auto">おまかせ</option>
-                <option value="meal">食事</option>
-                <option value="walk">散歩・旅行</option>
-                <option value="work">作業・勉強</option>
-                <option value="workout">運動</option>
-              </select>
-            </label>
             <button class="btn btn-stop" id="stopBtn">配信を終える</button>
           </div>
         </div>
+
+        <div class="danmaku-layer" id="danmakuLayer"></div>
       </section>
 
       <!-- コメント欄 -->
-      <aside class="chat-wrap">
+      <aside class="chat-wrap" id="chatWrap">
         <div class="chat-head">
-          <span>チャット</span>
-          <label class="pace">
-            テンポ
-            <input type="range" id="paceRange" min="2500" max="9000" step="500" value="5000" />
-          </label>
+          <div class="display-toggle" id="displayToggle" role="group" aria-label="コメント表示切り替え">
+            <button type="button" class="toggle-btn active" data-mode="chat">💬 チャット</button>
+            <button type="button" class="toggle-btn" data-mode="flow">📜 コメント流し</button>
+          </div>
         </div>
         <div class="chat-list" id="chatList"></div>
         <div class="chat-note" id="chatNote">配信を始めるとコメントが流れます。</div>
