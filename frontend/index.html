@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIRS — AI-ReactionStream</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <span class="brand-name">AIRS</span>
+        <span class="brand-sub">AI-ReactionStream</span>
+      </div>
+      <div class="live-status" id="liveStatus">
+        <span class="live-badge" id="liveBadge">OFFLINE</span>
+        <span class="viewers" id="viewers">👤 0</span>
+      </div>
+    </header>
+
+    <main class="stage">
+      <!-- 配信映像 -->
+      <section class="video-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="capture" hidden></canvas>
+
+        <div class="video-overlay" id="startOverlay">
+          <p>カメラとマイクを使って、AIの視聴者と一緒に配信を始めます。</p>
+          <button class="btn btn-primary" id="startBtn">配信を始める</button>
+        </div>
+
+        <div class="video-controls" id="videoControls" hidden>
+          <div class="ctrl-right">
+            <label class="mode-label" id="cameraLabel" hidden>
+              カメラ
+              <select id="cameraSelect"></select>
+            </label>
+            <button class="btn btn-stop" id="stopBtn">配信を終える</button>
+          </div>
+        </div>
+
+        <div class="danmaku-layer" id="danmakuLayer"></div>
+      </section>
+
+      <!-- コメント欄 -->
+      <aside class="chat-wrap" id="chatWrap">
+        <div class="chat-head">
+          <div class="display-toggle" id="displayToggle" role="group" aria-label="コメント表示切り替え">
+            <button type="button" class="toggle-btn active" data-mode="chat">💬 チャット</button>
+            <button type="button" class="toggle-btn" data-mode="flow">📜 コメント流し</button>
+          </div>
+        </div>
+        <div class="chat-list" id="chatList"></div>
+        <div class="chat-note" id="chatNote">配信を始めるとコメントが流れます。</div>
+      </aside>
+    </main>
+
+    <!-- 振り返りモーダル -->
+    <div class="modal" id="summaryModal" hidden>
+      <div class="modal-card">
+        <h2>今日の配信の振り返り</h2>
+        <p class="modal-body" id="summaryText">まとめています…</p>
+        <button class="btn btn-primary" id="closeSummary">とじる</button>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
