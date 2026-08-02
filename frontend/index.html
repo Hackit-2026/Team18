@@ -57,10 +57,12 @@
       <!-- コメント欄 -->
       <aside class="chat-wrap" id="chatWrap">
         <div class="chat-head">
-          <div class="display-toggle" id="displayToggle" role="group" aria-label="コメント表示切り替え">
-            <button type="button" class="toggle-btn active" data-mode="chat">💬 チャット</button>
-            <button type="button" class="toggle-btn" data-mode="flow">📜 コメント流し</button>
-          </div>
+          <span>チャット</span>
+          <label class="flow-switch" for="flowToggle">
+            <span class="flow-switch-label">コメント流し</span>
+            <input type="checkbox" id="flowToggle" aria-label="コメント流しをオンにする">
+            <span class="flow-switch-track" aria-hidden="true"></span>
+          </label>
         </div>
         <div class="chat-list" id="chatList"></div>
         <div class="chat-note" id="chatNote">配信を始めるとコメントが流れます。</div>
