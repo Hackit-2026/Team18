@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img src="./assets/aizuchi-wordmark.png" alt="あいづち テキストロゴ" width="440">
+  <img width="965" height="317" alt="Image" src="https://github.com/user-attachments/assets/18f7d545-cd8d-479f-8bf6-41ff01e7ca4d" />
 </p>
 
 <p align="center">
