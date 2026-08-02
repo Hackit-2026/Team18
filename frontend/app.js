@@ -22,7 +22,10 @@ const els = {
   liveBadge: document.getElementById("liveBadge"),
   viewers: document.getElementById("viewers"),
   summaryModal: document.getElementById("summaryModal"),
+  summaryTitleInput: document.getElementById("summaryTitleInput"),
   summaryText: document.getElementById("summaryText"),
+  calendarStatus: document.getElementById("calendarStatus"),
+  addCalendarBtn: document.getElementById("addCalendarBtn"),
   closeSummary: document.getElementById("closeSummary"),
 };
 
@@ -36,6 +39,10 @@ const state = {
   log: [],               // 表示したコメントのログ（振り返り用）
   viewers: 0,
   nameColors: {},
+  streamStartedAt: null,
+  streamEndedAt: null,
+  reflectionTitle: "",
+  reflectionSummary: "",
   targetLang: localStorage.getItem("airsTargetLang") || detectDefaultTargetLang(),
   translators: new Map(),
   displayMode: "chat", // "chat" = チャット欄 / "flow" = ニコニコ風に流す
@@ -54,6 +61,7 @@ const state = {
 // 映像フレームを送信する間隔
 const CAPTURE_INTERVAL_MS = 5000;
 const COMMENT_SOURCE_LANG = "ja";
+const LOCAL_CALENDAR_KEY = "airsCalendarEvents";
 
 // ---- 発話区切りの調整パラメータ ----
 const VAD = {
@@ -75,6 +83,49 @@ function normalizeComments(data) {
 
 function setTranslationStatus(text) {
   if (els.translationStatus) els.translationStatus.textContent = text;
+}
+
+function setCalendarStatus(text) {
+  if (els.calendarStatus) els.calendarStatus.textContent = text;
+}
+
+function readCalendarEvents() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LOCAL_CALENDAR_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.warn("カレンダー予定の読み込みに失敗:", err.message);
+    return [];
+  }
+}
+
+function writeCalendarEvents(events) {
+  localStorage.setItem(LOCAL_CALENDAR_KEY, JSON.stringify(events));
+}
+
+function addReflectionToCalendar() {
+  if (!state.reflectionSummary) return;
+  els.addCalendarBtn.disabled = true;
+  try {
+    const end = state.streamEndedAt || new Date();
+    const start = state.streamStartedAt || new Date(end.getTime() - 30 * 60 * 1000);
+    const title = (els.summaryTitleInput.value || state.reflectionTitle).trim() || "配信アーカイブ";
+    const events = readCalendarEvents();
+    events.push({
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      title,
+      summary: state.reflectionSummary,
+      startedAt: start.toISOString(),
+      endedAt: end.toISOString(),
+      createdAt: new Date().toISOString(),
+    });
+    writeCalendarEvents(events);
+    location.href = "calender.html";
+  } catch (err) {
+    console.error("カレンダー追加エラー:", err);
+    setCalendarStatus(err.message);
+    els.addCalendarBtn.disabled = false;
+  }
 }
 
 function translatorKey(targetLang) {
@@ -164,6 +215,7 @@ function colorFor(name) {
 // ---- 配信開始 ----
 async function start() {
   prepareTranslator();
+  state.streamStartedAt = new Date();
   try {
     state.stream = await navigator.mediaDevices.getUserMedia({
       video: { width: 1280, height: 720 },
@@ -501,6 +553,7 @@ async function onSegmentStop() {
 // ==========================================================
 async function stop() {
   state.live = false;
+  state.streamEndedAt = new Date();
   clearTimeout(state.captureTimer);
   clearInterval(state.viewerTimer);
   clearInterval(state.vadTimer);
@@ -512,7 +565,15 @@ async function stop() {
   if (state.stream) state.stream.getTracks().forEach((t) => t.stop());
 
   els.summaryModal.hidden = false;
+  els.summaryTitleInput.value = "";
+  els.summaryTitleInput.placeholder = "配信タイトルを考えています…";
+  els.summaryTitleInput.disabled = true;
   els.summaryText.textContent = "まとめています…";
+  state.reflectionTitle = "";
+  state.reflectionSummary = "";
+  els.addCalendarBtn.hidden = false;
+  els.addCalendarBtn.disabled = true;
+  setCalendarStatus("");
   try {
     const res = await fetch("/api/summary", {
       method: "POST",
@@ -520,11 +581,23 @@ async function stop() {
       body: JSON.stringify({ log: state.log }),
     });
     const data = await res.json();
-    els.summaryText.textContent = data.summary
+    const title = data.title
+      ? await translateTextInBrowser(data.title)
+      : "配信アーカイブ";
+    const summary = data.summary
       ? await translateTextInBrowser(data.summary)
       : "うまくまとめられませんでした。";
+    state.reflectionTitle = title;
+    state.reflectionSummary = summary;
+    els.summaryTitleInput.disabled = false;
+    els.summaryTitleInput.value = title;
+    els.summaryText.textContent = summary;
+    els.addCalendarBtn.disabled = false;
   } catch (err) {
+    els.summaryTitleInput.disabled = false;
+    els.summaryTitleInput.value = "配信アーカイブ";
     els.summaryText.textContent = "振り返りの取得に失敗しました。";
+    setCalendarStatus("振り返りを取得できなかったため、カレンダーに追加できません。");
   }
 }
 
@@ -542,6 +615,10 @@ if (els.languageSelect) {
 }
 els.startBtn.addEventListener("click", start);
 els.stopBtn.addEventListener("click", stop);
+els.summaryTitleInput.addEventListener("input", () => {
+  state.reflectionTitle = els.summaryTitleInput.value.trim();
+});
+els.addCalendarBtn.addEventListener("click", addReflectionToCalendar);
 els.closeSummary.addEventListener("click", () => {
   els.summaryModal.hidden = true;
   location.reload();

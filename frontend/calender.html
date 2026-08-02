@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIRS カレンダー</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="calendar-page">
+    <header class="topbar">
+      <a class="brand brand-link" href="index.html">
+        <span class="logo-dot"></span>
+        <span class="brand-name">AIRS</span>
+        <span class="brand-sub">Calendar</span>
+      </a>
+      <div class="live-status">
+        <a class="btn btn-stop" href="index.html">配信へ戻る</a>
+      </div>
+    </header>
+
+    <main class="calendar-shell">
+      <section class="calendar-toolbar">
+        <div>
+          <h1 id="monthTitle">カレンダー</h1>
+          <p id="eventCount">保存された振り返りはありません。</p>
+        </div>
+        <div class="calendar-actions">
+          <button class="btn btn-stop" id="prevMonth" type="button">前の月</button>
+          <button class="btn btn-stop" id="todayBtn" type="button">今日</button>
+          <button class="btn btn-stop" id="nextMonth" type="button">次の月</button>
+        </div>
+      </section>
+
+      <section class="calendar-layout">
+        <div class="calendar-grid-wrap">
+          <div class="calendar-weekdays" aria-hidden="true">
+            <span>日</span>
+            <span>月</span>
+            <span>火</span>
+            <span>水</span>
+            <span>木</span>
+            <span>金</span>
+            <span>土</span>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+
+        <aside class="event-panel">
+          <h2 id="selectedDateTitle">日付を選択</h2>
+          <div class="event-list" id="eventList"></div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="calender.js"></script>
+  </body>
+</html>

@@ -72,8 +72,19 @@
     <!-- 振り返りモーダル -->
     <div class="modal" id="summaryModal" hidden>
       <div class="modal-card">
-        <h2>今日の配信の振り返り</h2>
+        <label class="title-field" for="summaryTitleInput">
+          <span>タイトル</span>
+          <input
+            id="summaryTitleInput"
+            type="text"
+            maxlength="40"
+            placeholder="配信タイトルを入力"
+            autocomplete="off"
+          />
+        </label>
         <p class="modal-body" id="summaryText">まとめています…</p>
+        <p class="calendar-status" id="calendarStatus" aria-live="polite"></p>
+        <button class="btn btn-primary" id="addCalendarBtn">独自カレンダーに追加</button>
         <button class="btn btn-primary" id="closeSummary">とじる</button>
       </div>
     </div>
