@@ -54,6 +54,24 @@ body {
 .brand-sub { font-size: 12px; color: var(--muted); }
 
 .live-status { display: flex; align-items: center; gap: 14px; }
+.language-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.language-control select {
+  min-height: 32px;
+  max-width: 132px;
+  padding: 4px 28px 4px 8px;
+}
+.translation-status {
+  min-width: 32px;
+  color: var(--accent-soft);
+  font-size: 11px;
+}
 .live-badge {
   font-size: 12px; font-weight: 700; letter-spacing: 1px;
   padding: 4px 10px; border-radius: 999px;
@@ -247,6 +265,9 @@ select {
   .topbar { padding: 10px 12px; }
   .brand-sub { display: none; }
   .live-status { gap: 8px; }
+  .language-control { font-size: 0; gap: 0; }
+  .language-control select { max-width: 104px; min-height: 34px; }
+  .translation-status { display: none; }
 
   .stage { padding: 8px; gap: 8px; }
 

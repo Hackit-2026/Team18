@@ -17,6 +17,8 @@ const els = {
   chatNote: document.getElementById("chatNote"),
   displayToggle: document.getElementById("displayToggle"),
   danmakuLayer: document.getElementById("danmakuLayer"),
+  languageSelect: document.getElementById("languageSelect"),
+  translationStatus: document.getElementById("translationStatus"),
   liveBadge: document.getElementById("liveBadge"),
   viewers: document.getElementById("viewers"),
   summaryModal: document.getElementById("summaryModal"),
@@ -34,6 +36,8 @@ const state = {
   log: [],               // 表示したコメントのログ（振り返り用）
   viewers: 0,
   nameColors: {},
+  targetLang: localStorage.getItem("airsTargetLang") || detectDefaultTargetLang(),
+  translators: new Map(),
   displayMode: "chat", // "chat" = チャット欄 / "flow" = ニコニコ風に流す
   // 音声まわり
   audioCtx: null,
@@ -49,6 +53,7 @@ const state = {
 
 // 映像フレームを送信する間隔
 const CAPTURE_INTERVAL_MS = 5000;
+const COMMENT_SOURCE_LANG = "ja";
 
 // ---- 発話区切りの調整パラメータ ----
 const VAD = {
@@ -58,6 +63,91 @@ const VAD = {
   minSpeechMs: 400,    // これより短い音は無視（雑音対策）
   maxSpeechMs: 15000,  // 長すぎる発話は強制的に区切る
 };
+
+function detectDefaultTargetLang() {
+  const lang = (navigator.languages?.[0] || navigator.language || "ja").toLowerCase();
+  return lang.split("-")[0] || "ja";
+}
+
+function normalizeComments(data) {
+  return data.comments || [];
+}
+
+function setTranslationStatus(text) {
+  if (els.translationStatus) els.translationStatus.textContent = text;
+}
+
+function translatorKey(targetLang) {
+  return `${COMMENT_SOURCE_LANG}:${targetLang}`;
+}
+
+async function prepareTranslator(targetLang = state.targetLang) {
+  if (targetLang === COMMENT_SOURCE_LANG) {
+    setTranslationStatus("");
+    return null;
+  }
+  if (!("Translator" in self)) {
+    setTranslationStatus("未対応");
+    return null;
+  }
+
+  const key = translatorKey(targetLang);
+  if (state.translators.has(key)) return state.translators.get(key);
+
+  const options = { sourceLanguage: COMMENT_SOURCE_LANG, targetLanguage: targetLang };
+  setTranslationStatus("準備中");
+  const translatorPromise = Translator.create({
+      ...options,
+      monitor(m) {
+        m.addEventListener("downloadprogress", (e) => {
+          setTranslationStatus(`DL ${Math.round(e.loaded * 100)}%`);
+        });
+      },
+    })
+    .then((translator) => {
+      setTranslationStatus("ON");
+      return translator;
+    })
+    .catch((err) => {
+      state.translators.delete(key);
+      console.warn("Translator API を利用できません:", err.message);
+      setTranslationStatus("未対応");
+      return null;
+    });
+
+  state.translators.set(key, translatorPromise);
+  try {
+    const translator = await translatorPromise;
+    if (!translator) return null;
+    state.translators.set(key, translator);
+    return translator;
+  } catch (err) {
+    return null;
+  }
+}
+
+async function translateTextInBrowser(text) {
+  if (!text || state.targetLang === COMMENT_SOURCE_LANG) return text;
+  const translator = await prepareTranslator();
+  if (!translator) return text;
+  try {
+    return await translator.translate(text);
+  } catch (err) {
+    console.warn("ブラウザ内翻訳に失敗:", err.message);
+    return text;
+  }
+}
+
+async function translateCommentsInBrowser(comments) {
+  if (state.targetLang === COMMENT_SOURCE_LANG) return comments;
+  return Promise.all(
+    comments.map(async (c) => ({
+      ...c,
+      originalText: c.text,
+      text: await translateTextInBrowser(c.text),
+    }))
+  );
+}
 
 // ---- 名前の色を安定させる ----
 const PALETTE = [
@@ -73,6 +163,7 @@ function colorFor(name) {
 
 // ---- 配信開始 ----
 async function start() {
+  prepareTranslator();
   try {
     state.stream = await navigator.mediaDevices.getUserMedia({
       video: { width: 1280, height: 720 },
@@ -209,7 +300,8 @@ async function sendFrame() {
       }),
     });
     const data = await res.json();
-    if (data.comments) staggerComments(data.comments);
+    const comments = await translateCommentsInBrowser(normalizeComments(data));
+    if (comments.length) staggerComments(comments);
   } catch (err) {
     console.error("フレーム送信エラー:", err);
   } finally {
@@ -220,7 +312,10 @@ async function sendFrame() {
 // 複数コメントを少しずつ時間差で流す
 function staggerComments(comments) {
   comments.forEach((c, i) => {
-    setTimeout(() => addMessage(c.name, c.text, c.type), i * (500 + Math.random() * 900));
+    setTimeout(
+      () => addMessage(c.name, c.text, c.type, c.originalText || c.text),
+      i * (500 + Math.random() * 900)
+    );
   });
 }
 
@@ -228,15 +323,15 @@ function staggerComments(comments) {
 // コメント表示 / 文脈管理
 // ==========================================================
 // 画面に表示する視聴者コメント
-function addMessage(name, text, type) {
+function addMessage(name, text, type, originalText = text) {
   if (state.displayMode === "flow") {
     addFlowComment(name, text);
   } else {
     addChatMessage(name, text, type);
   }
 
-  pushHistory(name, text);
-  state.log.push({ name, text });
+  pushHistory(name, originalText);
+  state.log.push({ name, text: originalText });
 }
 
 // 通常のチャット欄表示
@@ -392,7 +487,8 @@ async function onSegmentStop() {
     const data = await res.json();
     // 自分の発言はチャットに表示しない。文脈にだけ残す。
     if (data.transcript) pushHistory("配信者", data.transcript);
-    if (data.comments) staggerComments(data.comments);
+    const comments = await translateCommentsInBrowser(normalizeComments(data));
+    if (comments.length) staggerComments(comments);
   } catch (err) {
     console.error("音声送信エラー:", err);
   } finally {
@@ -424,13 +520,26 @@ async function stop() {
       body: JSON.stringify({ log: state.log }),
     });
     const data = await res.json();
-    els.summaryText.textContent = data.summary || "うまくまとめられませんでした。";
+    els.summaryText.textContent = data.summary
+      ? await translateTextInBrowser(data.summary)
+      : "うまくまとめられませんでした。";
   } catch (err) {
     els.summaryText.textContent = "振り返りの取得に失敗しました。";
   }
 }
 
 // ---- イベント登録 ----
+if (els.languageSelect) {
+  const supported = Array.from(els.languageSelect.options).map((o) => o.value);
+  if (!supported.includes(state.targetLang)) state.targetLang = "ja";
+  els.languageSelect.value = state.targetLang;
+  els.languageSelect.addEventListener("change", () => {
+    state.targetLang = els.languageSelect.value;
+    localStorage.setItem("airsTargetLang", state.targetLang);
+    prepareTranslator();
+  });
+  if (state.targetLang !== COMMENT_SOURCE_LANG) setTranslationStatus("待機");
+}
 els.startBtn.addEventListener("click", start);
 els.stopBtn.addEventListener("click", stop);
 els.closeSummary.addEventListener("click", () => {
