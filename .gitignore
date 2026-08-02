@@ -1,4 +1,33 @@
+# Node.js
 node_modules/
+
+# 環境変数・秘密情報
 .env
+.env.*
+!.env.example
+
+# ログ・OS
 *.log
 .DS_Store
+
+# Python仮想環境・キャッシュ
+.audio-tools/
+.venv/
+__pycache__/
+*.pyc
+
+# AIモデル・学習成果物
+models/
+*.gguf
+*.safetensors
+checkpoint-*/
+wandb/
+
+# 学習用データ
+training-data/
+
+# 学習用データの収集モジュール
+collectors/
+
+# modelの確認フォルダ
+scripts/

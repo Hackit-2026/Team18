@@ -9,24 +9,20 @@ import path from "path";
 import { fileURLToPath } from "url";
 import provider from "./providers/index.js";
 import { historyText } from "./shared.js";
+//学習用モジュール（要約データ収集）
+import {
+  saveSummaryExample,
+} from "./collectors/summary_collector.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const PORT = process.env.PORT || 3000;
-if (!process.env.OPENAI_API_KEY) {
-  console.warn(
-    "\n[警告] OPENAI_API_KEY が設定されていません。" +
-      "\n画像認識と音声文字起こしにはAPIキーが必要です。\n",
-  );
-}
 
-if (!process.env.OPENAI_API_KEY) {
-  console.warn(
-    "\n[警告] OPENAI_API_KEY が設定されていません。" +
-      "\n  .env に OPENAI_API_KEY を設定してください。\n"
-  );
-}
+console.log("  画像認識: ローカル local-vision");
+console.log("  音声文字起こし: ローカル LFM2.5-Audio");
+console.log("  コメント生成: ローカル local-comments");
+console.log("  配信まとめ: ローカル local-summary（学習データ収集中）");
 
 // ---- Express セットアップ ----
 const app = express();
@@ -100,13 +96,30 @@ app.post("/api/summary", async (req, res) => {
     const { log = [] } = req.body;
     if (!log.length) return res.json({ summary: "コメントがまだありませんでした。" });
 
-    const logText = log
-      .slice(-60)
-      .map((c) => `${c.name || "誰か"}: ${c.text}`)
-      .join("\n");
+    const recentLog = log.slice(-60);
 
-    const summary = await provider.summarize({ logText });
-    res.json({ summary });
+const logText = recentLog
+  .map((c) => `${c.name || "誰か"}: ${c.text}`)
+  .join("\n");
+
+const summary = await provider.summarize({
+  logText,
+});
+
+try {
+  await saveSummaryExample({
+    log: recentLog,
+    logText,
+    summary,
+  });
+} catch (saveError) {
+  console.error(
+    "要約学習データ保存エラー:",
+    saveError.message,
+  );
+}
+
+res.json({ summary });
   } catch (err) {
     console.error("/api/summary エラー:", err.message);
     res.status(500).json({ error: "振り返りの生成に失敗しました", detail: err.message });
