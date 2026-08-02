@@ -22,7 +22,35 @@ const els = {
   summaryModal: document.getElementById("summaryModal"),
   summaryText: document.getElementById("summaryText"),
   closeSummary: document.getElementById("closeSummary"),
+  viewArchive: document.getElementById("viewArchive"),
+  archiveBtn: document.getElementById("archiveBtn"),
+  archiveModal: document.getElementById("archiveModal"),
+  closeArchive: document.getElementById("closeArchive"),
+  prevMonth: document.getElementById("prevMonth"),
+  nextMonth: document.getElementById("nextMonth"),
+  calendarTitle: document.getElementById("calendarTitle"),
+  calendarGrid: document.getElementById("calendarGrid"),
+  archiveDetail: document.getElementById("archiveDetail"),
+  userBtn: document.getElementById("userBtn"),
+  userAvatar: document.getElementById("userAvatar"),
+  userName: document.getElementById("userName"),
+  userModal: document.getElementById("userModal"),
+  userForm: document.getElementById("userForm"),
+  userModalTitle: document.getElementById("userModalTitle"),
+  userNameInput: document.getElementById("userNameInput"),
+  userError: document.getElementById("userError"),
+  cancelUser: document.getElementById("cancelUser"),
+  smokeStage: document.getElementById("smokeStage"),
+  startupMessage: document.getElementById("startupMessage"),
+  welcomeMessage: document.getElementById("welcomeMessage"),
+  welcomeName: document.getElementById("welcomeName"),
+  logoutBtn: document.getElementById("logoutBtn"),
+  startOnboarding: document.getElementById("startOnboarding"),
+  browseArchive: document.getElementById("browseArchive"),
 };
+
+const USER_NAME_KEY = "airs-user-name";
+const LEGACY_OWNER_KEY = "airs-legacy-archive-owner";
 
 const state = {
   stream: null,
@@ -45,6 +73,16 @@ const state = {
   lastLoudAt: 0,
   segStartAt: 0,
   sending: false,        // 音声送信中フラグ
+  stopping: false,       // 配信終了処理の二重実行を防ぐ
+  archiveRecorder: null,
+  archiveChunks: [],
+  streamStartedAt: null,
+  calendarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  archiveObjectUrls: [],
+  userName: "",
+  onboardingTimer: null,
+  archiveBrowseAll: false,
+  archiveFromLanding: false,
 };
 
 // 映像フレームを送信する間隔
@@ -71,6 +109,99 @@ function colorFor(name) {
   return c;
 }
 
+// ---- ユーザー名 ----
+function readSavedUserName() {
+  try { return localStorage.getItem(USER_NAME_KEY)?.trim() || ""; } catch { return ""; }
+}
+
+function updateUserDisplay(name) {
+  state.userName = name;
+  els.userName.textContent = name || "未設定";
+  els.userAvatar.textContent = name ? Array.from(name)[0].toUpperCase() : "?";
+}
+
+function showUserModal(isEditing = false) {
+  clearTimeout(state.onboardingTimer);
+  els.userModalTitle.textContent = isEditing ? "ユーザー名を変更" : "ユーザー名を決めましょう";
+  els.userNameInput.value = state.userName;
+  els.userError.textContent = "";
+  els.cancelUser.hidden = !isEditing;
+  els.userModal.hidden = false;
+  els.userModal.classList.toggle("onboarding-mode", !isEditing);
+  els.startupMessage.hidden = true;
+  els.welcomeMessage.hidden = true;
+
+  if (isEditing) {
+    els.userForm.hidden = false;
+    setTimeout(() => els.userNameInput.focus(), 0);
+    return;
+  }
+
+  els.userForm.hidden = true;
+  els.startupMessage.hidden = false;
+}
+
+function showOnboardingForm() {
+  els.startupMessage.hidden = true;
+  els.welcomeMessage.hidden = true;
+  els.userForm.hidden = false;
+  els.userModalTitle.textContent = "ユーザー名を決めましょう";
+  els.userNameInput.value = state.userName;
+  els.userError.textContent = "";
+  els.cancelUser.hidden = true;
+  els.userNameInput.focus();
+}
+
+function playSmoke() {
+  els.smokeStage.classList.remove("play");
+  void els.smokeStage.offsetWidth;
+  els.smokeStage.classList.add("play");
+}
+
+function playWelcome(name) {
+  clearTimeout(state.onboardingTimer);
+  els.userForm.hidden = true;
+  els.startupMessage.hidden = true;
+  els.welcomeName.textContent = name;
+  els.welcomeMessage.hidden = false;
+  playSmoke();
+  state.onboardingTimer = setTimeout(() => {
+    els.userModal.hidden = true;
+    els.userModal.classList.remove("onboarding-mode");
+    els.welcomeMessage.hidden = true;
+  }, 2200);
+}
+
+function initializeUser() {
+  const name = readSavedUserName();
+  updateUserDisplay(name);
+  showUserModal(false);
+}
+
+function logoutUser() {
+  if (state.live) {
+    alert("配信中はログアウトできません。先に配信を終了してください。");
+    return;
+  }
+  if (!confirm("ログアウトしますか？ 配信アーカイブは削除されません。")) return;
+  try {
+    localStorage.removeItem(USER_NAME_KEY);
+  } catch {
+    alert("ログアウト情報を更新できませんでした。ブラウザの設定を確認してください。");
+    return;
+  }
+  updateUserDisplay("");
+  showUserModal(false);
+}
+
+function validateUserName(value) {
+  const name = value.trim().replace(/\s+/g, " ");
+  if (!name) return { error: "ユーザー名を入力してください。" };
+  if (Array.from(name).length > 20) return { error: "ユーザー名は20文字以内で入力してください。" };
+  if (/[\u0000-\u001f\u007f]/.test(name)) return { error: "使用できない文字が含まれています。" };
+  return { name };
+}
+
 // ---- 配信開始 ----
 async function start() {
   try {
@@ -89,6 +220,8 @@ async function start() {
   els.chatNote.textContent = "AI視聴者が集まってきました。話しかけると反応します。";
 
   state.live = true;
+  state.streamStartedAt = new Date();
+  startArchiveRecording();
   els.liveBadge.textContent = "● LIVE";
   els.liveBadge.classList.add("on");
 
@@ -404,11 +537,15 @@ async function onSegmentStop() {
 // 配信終了 → 振り返り
 // ==========================================================
 async function stop() {
+  if (!state.live || state.stopping) return;
+  state.stopping = true;
+  els.stopBtn.disabled = true;
   state.live = false;
   clearTimeout(state.captureTimer);
   clearInterval(state.viewerTimer);
   clearInterval(state.vadTimer);
   if (state.recorder && state.recorder.state !== "inactive") state.recorder.stop();
+  const videoBlob = await stopArchiveRecording();
   if (state.audioCtx) state.audioCtx.close().catch(() => {});
   els.liveBadge.textContent = "OFFLINE";
   els.liveBadge.classList.remove("on");
@@ -417,6 +554,7 @@ async function stop() {
 
   els.summaryModal.hidden = false;
   els.summaryText.textContent = "まとめています…";
+  let summary = "振り返りを取得できませんでした。";
   try {
     const res = await fetch("/api/summary", {
       method: "POST",
@@ -424,16 +562,251 @@ async function stop() {
       body: JSON.stringify({ log: state.log }),
     });
     const data = await res.json();
-    els.summaryText.textContent = data.summary || "うまくまとめられませんでした。";
+    if (!res.ok) throw new Error(data.detail || data.error || "振り返りの生成に失敗しました。");
+
+    summary = data.summary || "うまくまとめられませんでした。";
   } catch (err) {
-    els.summaryText.textContent = "振り返りの取得に失敗しました。";
+    console.error("振り返りの取得エラー:", err);
+  }
+
+  try {
+    await saveArchive({
+      id: Date.now(),
+      date: localDate(new Date()),
+      startedAt: state.streamStartedAt?.toISOString() || new Date().toISOString(),
+      endedAt: new Date().toISOString(),
+      summary,
+      videoBlob,
+      mimeType: videoBlob?.type || "",
+      owner: state.userName,
+    });
+    els.summaryText.textContent = summary + "\n\n✓ 配信アーカイブカレンダーに保存しました。";
+  } catch (err) {
+    console.error("アーカイブ保存エラー:", err);
+    els.summaryText.textContent = summary + "\n\n⚠ アーカイブを保存できませんでした。ブラウザの空き容量を確認してください。";
+  }
+}
+
+// ==========================================================
+// 配信全体の録画 + 専用アーカイブカレンダー（IndexedDB）
+// ==========================================================
+function pickArchiveMime() {
+  const types = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"];
+  return types.find((type) => MediaRecorder.isTypeSupported(type)) || "";
+}
+
+function startArchiveRecording() {
+  if (!window.MediaRecorder || !state.stream) return;
+  try {
+    const mimeType = pickArchiveMime();
+    state.archiveChunks = [];
+    state.archiveRecorder = new MediaRecorder(state.stream, mimeType ? { mimeType } : undefined);
+    state.archiveRecorder.ondataavailable = (event) => {
+      if (event.data.size) state.archiveChunks.push(event.data);
+    };
+    state.archiveRecorder.start(1000);
+  } catch (err) {
+    console.error("配信アーカイブの録画を開始できません:", err);
+  }
+}
+
+function stopArchiveRecording() {
+  const recorder = state.archiveRecorder;
+  if (!recorder) return Promise.resolve(null);
+  if (recorder.state === "inactive") {
+    return Promise.resolve(new Blob(state.archiveChunks, { type: recorder.mimeType }));
+  }
+  return new Promise((resolve) => {
+    recorder.addEventListener("stop", () => {
+      resolve(new Blob(state.archiveChunks, { type: recorder.mimeType || "video/webm" }));
+    }, { once: true });
+    recorder.stop();
+  });
+}
+
+function localDate(value) {
+  return [value.getFullYear(), String(value.getMonth() + 1).padStart(2, "0"), String(value.getDate()).padStart(2, "0")].join("-");
+}
+
+function openArchiveDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("airs-archive", 1);
+    request.onupgradeneeded = () => {
+      const store = request.result.createObjectStore("streams", { keyPath: "id" });
+      store.createIndex("date", "date", { unique: false });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveArchive(record) {
+  const db = await openArchiveDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("streams", "readwrite");
+    tx.objectStore("streams").put(record);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
+async function getArchives() {
+  const db = await openArchiveDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction("streams", "readonly").objectStore("streams").getAll();
+    request.onsuccess = () => {
+      db.close();
+      let legacyOwner = "";
+      try { legacyOwner = localStorage.getItem(LEGACY_OWNER_KEY) || ""; } catch {}
+      const records = state.archiveBrowseAll
+        ? request.result
+        : request.result.filter((record) =>
+            record.owner === state.userName || (!record.owner && legacyOwner === state.userName)
+          );
+      resolve(records.sort((a, b) => b.id - a.id));
+    };
+    request.onerror = () => { db.close(); reject(request.error); };
+  });
+}
+
+async function renameArchiveOwner(oldName, newName) {
+  if (!oldName || oldName === newName) return;
+  const db = await openArchiveDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("streams", "readwrite");
+    const store = tx.objectStore("streams");
+    const request = store.openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) return;
+      if (cursor.value.owner === oldName) cursor.update({ ...cursor.value, owner: newName });
+      cursor.continue();
+    };
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
+async function renderCalendar(selectedDate) {
+  const records = await getArchives();
+  const month = state.calendarMonth;
+  els.calendarTitle.textContent = `${month.getFullYear()}年 ${month.getMonth() + 1}月`;
+  els.calendarGrid.replaceChildren();
+  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1).getDay();
+  const lastDate = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const today = localDate(new Date());
+
+  for (let i = 0; i < firstDay; i++) {
+    const blank = document.createElement("span");
+    blank.className = "calendar-day outside";
+    els.calendarGrid.appendChild(blank);
+  }
+  for (let day = 1; day <= lastDate; day++) {
+    const date = localDate(new Date(month.getFullYear(), month.getMonth(), day));
+    const count = records.filter((record) => record.date === date).length;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "calendar-day" + (date === today ? " today" : "") + (date === selectedDate ? " selected" : "");
+    button.innerHTML = `<span class="day-number">${day}</span>${count ? `<span class="archive-mark">● ${count}件</span>` : ""}`;
+    button.addEventListener("click", () => {
+      renderCalendar(date);
+      renderArchiveDetail(date, records.filter((record) => record.date === date));
+    });
+    els.calendarGrid.appendChild(button);
+  }
+}
+
+function renderArchiveDetail(date, records) {
+  state.archiveObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+  state.archiveObjectUrls = [];
+  els.archiveDetail.replaceChildren();
+  if (!records.length) {
+    els.archiveDetail.innerHTML = `<div class="archive-empty">${escapeHtml(date)} の配信アーカイブはありません。</div>`;
+    return;
+  }
+  records.forEach((record) => {
+    const entry = document.createElement("article");
+    entry.className = "archive-entry";
+    const started = new Date(record.startedAt);
+    const ended = new Date(record.endedAt);
+    const duration = Math.max(1, Math.round((ended - started) / 60000));
+    const url = record.videoBlob ? URL.createObjectURL(record.videoBlob) : "";
+    if (url) state.archiveObjectUrls.push(url);
+    entry.innerHTML = `<h3>${started.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })} の配信</h3>
+      <p class="archive-meta">約${duration}分</p>
+      ${url ? `<video class="archive-video" controls src="${url}"></video>` : `<p class="archive-meta">動画は保存されていません。</p>`}
+      <h4>振り返り</h4><p class="archive-summary"></p>`;
+    entry.querySelector(".archive-summary").textContent = record.summary;
+    els.archiveDetail.appendChild(entry);
+  });
+}
+
+async function openArchiveCalendar({ browseAll = false, fromLanding = false } = {}) {
+  els.summaryModal.hidden = true;
+  els.userModal.hidden = true;
+  els.archiveModal.hidden = false;
+  state.archiveBrowseAll = browseAll;
+  state.archiveFromLanding = fromLanding;
+  state.calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  try {
+    await renderCalendar(localDate(new Date()));
+    const records = await getArchives();
+    renderArchiveDetail(localDate(new Date()), records.filter((record) => record.date === localDate(new Date())));
+  } catch (err) {
+    els.archiveDetail.innerHTML = `<div class="archive-empty">アーカイブを読み込めませんでした。</div>`;
   }
 }
 
 // ---- イベント登録 ----
 els.startBtn.addEventListener("click", start);
 els.stopBtn.addEventListener("click", stop);
+els.userBtn.addEventListener("click", () => showUserModal(true));
+els.logoutBtn.addEventListener("click", logoutUser);
+els.startOnboarding.addEventListener("click", showOnboardingForm);
+els.browseArchive.addEventListener("click", () => openArchiveCalendar({ browseAll: true, fromLanding: true }));
+els.userForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const isOnboarding = els.userModal.classList.contains("onboarding-mode");
+  const result = validateUserName(els.userNameInput.value);
+  if (result.error) {
+    els.userError.textContent = result.error;
+    return;
+  }
+  try {
+    await renameArchiveOwner(state.userName, result.name);
+    localStorage.setItem(USER_NAME_KEY, result.name);
+    const legacyOwner = localStorage.getItem(LEGACY_OWNER_KEY);
+    if (!legacyOwner || legacyOwner === state.userName) localStorage.setItem(LEGACY_OWNER_KEY, result.name);
+  } catch {
+    els.userError.textContent = "ユーザー名を保存できませんでした。ブラウザの設定を確認してください。";
+    return;
+  }
+  updateUserDisplay(result.name);
+  if (isOnboarding) playWelcome(result.name);
+  else els.userModal.hidden = true;
+});
+els.cancelUser.addEventListener("click", () => { els.userModal.hidden = true; });
+els.archiveBtn.addEventListener("click", () => openArchiveCalendar());
+els.viewArchive.addEventListener("click", () => openArchiveCalendar());
+els.closeArchive.addEventListener("click", () => {
+  state.archiveObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+  state.archiveObjectUrls = [];
+  els.archiveModal.hidden = true;
+  if (state.archiveFromLanding) showUserModal(false);
+  state.archiveBrowseAll = false;
+  state.archiveFromLanding = false;
+});
+els.prevMonth.addEventListener("click", () => {
+  state.calendarMonth = new Date(state.calendarMonth.getFullYear(), state.calendarMonth.getMonth() - 1, 1);
+  renderCalendar();
+});
+els.nextMonth.addEventListener("click", () => {
+  state.calendarMonth = new Date(state.calendarMonth.getFullYear(), state.calendarMonth.getMonth() + 1, 1);
+  renderCalendar();
+});
 els.closeSummary.addEventListener("click", () => {
   els.summaryModal.hidden = true;
   location.reload();
 });
+
+initializeUser();
