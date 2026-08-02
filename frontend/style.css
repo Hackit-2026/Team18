@@ -22,7 +22,7 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+  font-family: "ZenKakuGothicNew-Medium", "ZenKakuGothicNew-Medium", system-ui, sans-serif;
 }
 
 body {
@@ -259,7 +259,7 @@ select {
 .user-modal,
 .user-modal button,
 .user-modal input {
-  font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", sans-serif;
+  font-family: "ZenKakuGothicNew-Medium", "ZenKakuGothicNew-Medium", sans-serif;
   font-weight: 500;
 }
 .user-modal.onboarding-mode {
@@ -334,7 +334,7 @@ select {
 }
 .onboarding-message .aizuchi-wordmark {
   display: flex; align-items: baseline; justify-content: center; gap: clamp(2px, 1.2vw, 14px);
-  color: #343638; font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", sans-serif;
+  color: #343638; font-family: "ZenKakuGothicNew-Medium", "ZenKakuGothicNew-Medium", sans-serif;
   font-size: clamp(58px, 10vw, 112px); font-weight: 500; letter-spacing: 0; line-height: 1;
 }
 .word-char { position: relative; display: inline-block; transform: none; }
@@ -405,7 +405,7 @@ select {
   to { opacity: 1; transform: none; filter: blur(0); }
 }
 .user-modal.onboarding-mode :is(p, h2, small, label, button, input) {
-  font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", sans-serif;
+  font-family: "ZenKakuGothicNew-Medium", "ZenKakuGothicNew-Medium", sans-serif;
   font-weight: 500;
 }
 .user-card { max-width: 430px; }
