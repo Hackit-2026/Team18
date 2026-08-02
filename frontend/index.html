@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AIRS — AI-ReactionStream</title>
+    <title></title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500&display=swap" rel="stylesheet" />
@@ -12,9 +12,13 @@
   <body>
     <header class="topbar">
       <div class="brand">
-        <span class="logo-dot"></span>
-        <span class="brand-name">AIRS</span>
-        <span class="brand-sub">AI-ReactionStream</span>
+        <img class="logo-mark" src="assets/chat-logo.png" alt="" />
+        <span class="brand-name brand-wordmark" aria-label="あいづち">
+          <span class="word-char">あ</span>
+          <span class="word-char">い</span>
+          <span class="word-char">つ<span class="talk-marks" aria-hidden="true"><i><b class="thumb-mark"></b></i><i>♥</i></span></span>
+          <span class="word-char">ち</span>
+        </span>
       </div>
       <div class="live-status" id="liveStatus">
         <button class="user-chip" id="userBtn" type="button" aria-label="ユーザー名を変更">
@@ -80,12 +84,14 @@
         <span></span><span></span><span></span><span></span><span></span>
       </div>
       <section class="onboarding-message startup-message" id="startupMessage" hidden>
-        <span class="onboarding-logo-dot"></span>
-        <small class="service-label">AI StreamingService</small>
-        <p class="aizuchi-wordmark" aria-label="あいつち">
+        <span class="onboarding-logo-dot" aria-hidden="true">
+          <img src="assets/chat-logo.png" alt="" />
+        </span>
+        <small class="service-label">AI Streaming</small>
+        <p class="aizuchi-wordmark" aria-label="あいづち">
           <span class="word-char char-a">あ</span>
           <span class="word-char char-i">い</span>
-          <span class="word-char char-tsu">つ<span class="talk-marks" aria-hidden="true"><i>●</i><i>♥</i></span></span>
+          <span class="word-char char-tsu">つ<span class="talk-marks" aria-hidden="true"><i><b class="thumb-mark"></b></i><i>♥</i></span></span>
           <span class="word-char char-chi">ち</span>
         </p>
         <div class="startup-actions">
@@ -94,18 +100,21 @@
         </div>
       </section>
       <form class="modal-card user-card" id="userForm" hidden>
-        <h2 id="userModalTitle">ユーザー名を決めましょう</h2>
+        <h2 id="userModalTitle" hidden></h2>
         <label class="user-label" for="userNameInput">ユーザー名</label>
         <input id="userNameInput" class="user-input" type="text" maxlength="20" autocomplete="nickname" required />
         <p class="user-error" id="userError" role="alert"></p>
         <div class="modal-actions">
           <button class="btn btn-stop" id="cancelUser" type="button" hidden>キャンセル</button>
-          <button class="btn btn-primary" type="submit">この名前ではじめる</button>
+          <button class="btn btn-primary" type="submit">このユーザー名で始める</button>
         </div>
       </form>
       <section class="onboarding-message welcome-message" id="welcomeMessage" hidden>
-        <p>ようこそ</p>
-        <h2 id="welcomeName"></h2>
+        <div class="welcome-headline">
+          <p>ようこそ</p>
+          <h2 id="welcomeName"></h2>
+        </div>
+        <small class="welcome-tagline">あなただけのAIライブ配信を始めましょう</small>
       </section>
     </div>
 
