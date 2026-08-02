@@ -9,11 +9,19 @@
 **AI Streaming『あいづち | AIZUCHI』**
 
 <p align="center">
-  <img width="1448" height="1086" alt="Image" src="https://github.com/user-attachments/assets/61ae3311-a6bb-404f-907f-e741a0598f7f" />
+  <img
+    src="https://github.com/user-attachments/assets/61ae3311-a6bb-404f-907f-e741a0598f7f"
+    alt="あいづち シンボルロゴ"
+    width="220"
+  />
 </p>
 
 <p align="center">
-  <img width="965" height="317" alt="Image" src="https://github.com/user-attachments/assets/18f7d545-cd8d-479f-8bf6-41ff01e7ca4d" />
+  <img
+    src="https://github.com/user-attachments/assets/18f7d545-cd8d-479f-8bf6-41ff01e7ca4d"
+    alt="あいづち テキストロゴ"
+    width="380"
+  />
 </p>
 
 <p align="center">
