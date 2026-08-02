@@ -37,7 +37,7 @@ AI Streaming『あいづち | AIZUCHI』は、自分の映像をインターネ�
 
 ## デモ
 
-- 発表資料URL：`[あいづち_発表資料.pdf](https://github.com/user-attachments/files/30640531/_.pdf)`
+- 発表資料URL：[あいづち発表資料を見る](https://github.com/user-attachments/files/30640531/_.pdf)
 - デモURL：`ここにURLを記入`
 - デモ動画：`ここにURLを記入`
 - スクリーンショット：`docs/images/demo-screen.png` に配置予定
