@@ -22,7 +22,7 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+  font-family: "ZenKakuGothicNew-Medium", "ZenKakuGothicNew-Medium", system-ui, sans-serif;
 }
 
 body {
@@ -121,6 +121,11 @@ body {
   background: rgba(10,11,16,.82);
 }
 .video-overlay p { color: var(--muted); max-width: 360px; line-height: 1.7; margin: 0; }
+.start-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.btn-start-archive {
+  background: rgba(255,255,255,.08); color: var(--text); border: 1px solid rgba(255,255,255,.22);
+}
+.btn-start-archive:hover { background: rgba(255,255,255,.14); }
 
 .video-controls {
   position: absolute; left: 0; right: 0; bottom: 0;
@@ -251,6 +256,12 @@ select {
 
 /* ---- ユーザー名設定 ---- */
 .user-modal { z-index: 70; }
+.user-modal,
+.user-modal button,
+.user-modal input {
+  font-family: "ZenKakuGothicNew-Medium", "ZenKakuGothicNew-Medium", sans-serif;
+  font-weight: 500;
+}
 .user-modal.onboarding-mode {
   overflow: hidden; background: #fff; color: #183246;
   transition: background .8s ease;
@@ -293,8 +304,13 @@ select {
   transform: rotate(12deg);
 }
 .fluffy-rainbow {
-  width: min(27vw, 330px); height: min(34vw, 410px); right: 5%; top: -7%; opacity: .38;
-  background: radial-gradient(circle at 58% 63%, #ffd582 0 12%, #f6a3ba 32%, #ff967e 49%, #71ace0 73%, transparent 77%);
+  width: min(27vw, 330px); height: min(34vw, 410px); right: 5%; top: -7%; opacity: .56;
+  background:
+    radial-gradient(circle at 70% 76%, #ffe7a8 0 10%, rgba(255,220,153,.9) 18%, transparent 38%),
+    radial-gradient(circle at 28% 72%, #b9eff0 0 13%, rgba(153,220,232,.82) 25%, transparent 43%),
+    radial-gradient(circle at 48% 76%, #efc2dc 0 13%, rgba(238,170,202,.72) 28%, transparent 45%),
+    radial-gradient(ellipse at 53% 45%, #ff9b86 0 20%, #f7a0a0 39%, transparent 57%),
+    radial-gradient(ellipse at 52% 52%, #75afe1 0 57%, #4f8fc9 68%, transparent 77%);
   transform: rotate(-20deg); animation-delay: -2.5s;
 }
 .fluffy-soft {
@@ -312,9 +328,51 @@ select {
 }
 .onboarding-message p { margin: 0; font-size: clamp(42px, 8vw, 82px); font-weight: 900; letter-spacing: .14em; }
 .onboarding-message small { display: block; margin-top: 10px; color: #54778b; font-size: 13px; letter-spacing: .12em; }
+.onboarding-message .service-label {
+  margin: 0 0 8px; color: #516676; font-size: 11px; font-weight: 700;
+  letter-spacing: .13em; text-transform: none;
+}
+.onboarding-message .aizuchi-wordmark {
+  display: flex; align-items: baseline; justify-content: center; gap: clamp(2px, 1.2vw, 14px);
+  color: #343638; font-family: "ZenKakuGothicNew-Medium", "ZenKakuGothicNew-Medium", sans-serif;
+  font-size: clamp(58px, 10vw, 112px); font-weight: 500; letter-spacing: 0; line-height: 1;
+}
+.word-char { position: relative; display: inline-block; transform: none; }
+.talk-marks {
+  position: absolute; display: flex; gap: 3px; right: -2px; top: -17px;
+  transform: rotate(8deg);
+}
+.talk-marks i {
+  position: relative; display: grid; place-items: center; width: 17px; height: 15px;
+  border-radius: 3px; background: #343638; color: #fff; font-size: 6px; font-style: normal;
+}
+.talk-marks i::after {
+  content: ""; position: absolute; left: 3px; bottom: -3px;
+  border-width: 3px 3px 0 0; border-style: solid; border-color: #343638 transparent transparent transparent;
+}
+.talk-marks i:last-child { transform: translateY(-8px); }
+.startup-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+.startup-btn {
+  min-width: 190px; min-height: 48px; padding: 11px 20px; border-radius: 999px;
+  cursor: pointer; font-size: 14px; font-weight: 800; transition: transform .15s ease, box-shadow .2s ease;
+}
+.startup-btn:hover { transform: translateY(-2px); }
+.startup-btn-primary { border: 0; background: #183246; color: #fff; box-shadow: 0 12px 30px rgba(24,50,70,.16); }
+.startup-btn-secondary { border: 1px solid rgba(24,50,70,.22); background: rgba(255,255,255,.68); color: #183246; backdrop-filter: blur(12px); }
 .onboarding-logo-dot {
-  display: block; width: 16px; height: 16px; margin: 0 auto 20px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 25px rgba(255,122,51,.85);
+  position: relative; isolation: isolate; display: block;
+  width: 76px; height: 66px; margin: 0 auto 24px;
+  border-radius: 46% 54% 49% 51% / 43% 48% 52% 57%;
+  background: linear-gradient(135deg, rgba(35,145,243,.88), rgba(43,218,234,.82) 58%, rgba(119,247,177,.68));
+  transform: rotate(-5deg);
+  box-shadow: none;
+}
+.onboarding-logo-dot::before {
+  content: ""; position: absolute; z-index: -1;
+  width: 78px; height: 66px; left: -9px; top: -7px;
+  border-radius: 54% 46% 58% 42% / 49% 57% 43% 51%;
+  background: linear-gradient(135deg, rgba(121,174,250,.58), rgba(92,225,244,.52) 58%, rgba(143,255,190,.45));
+  transform: rotate(8deg);
 }
 .welcome-message p { font-size: clamp(20px, 3vw, 30px); font-weight: 600; letter-spacing: .08em; }
 .welcome-message h2 { margin: 12px 0 0; font-size: clamp(38px, 7vw, 72px); color: #0f2d40; }
@@ -345,6 +403,10 @@ select {
 @keyframes cardReveal {
   from { opacity: 0; transform: translateX(-55px) scale(.97); filter: blur(8px); }
   to { opacity: 1; transform: none; filter: blur(0); }
+}
+.user-modal.onboarding-mode :is(p, h2, small, label, button, input) {
+  font-family: "ZenKakuGothicNew-Medium", "ZenKakuGothicNew-Medium", sans-serif;
+  font-weight: 500;
 }
 .user-card { max-width: 430px; }
 .user-help { color: var(--muted); line-height: 1.7; margin: 0 0 20px; font-size: 14px; }
@@ -427,6 +489,8 @@ select {
 
   .btn, select { font-size: 15px; }
   .btn { min-height: 44px; }
+  .start-actions { width: 100%; flex-direction: column; }
+  .start-actions .btn { width: min(100%, 280px); }
   select { min-height: 40px; }
 
   .chat-head { flex-direction: column; align-items: stretch; }
