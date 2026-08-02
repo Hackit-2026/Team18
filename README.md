@@ -15,4 +15,8 @@ GGUFへ変換してllama.cppから実行できる
 
 
 
-collectors/summary_collector.jsでデータ収集
+
+
+# 参考文献
+
+要約モデルの開発：https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct
