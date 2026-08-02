@@ -254,9 +254,6 @@ select {
   border-top: 1px solid var(--line);
 }
 
-/* コメント流し（ニコニコ風）モード中は、チャット欄の一覧を隠す */
-.chat-wrap.mode-flow .chat-list { display: none; }
-
 /* ---- 振り返りモーダル ---- */
 .modal {
   position: fixed; inset: 0;
@@ -542,9 +539,8 @@ select {
   .start-actions .btn { width: min(100%, 280px); }
   select { min-height: 40px; }
 
-  .chat-head { flex-direction: column; align-items: stretch; }
-  .display-toggle { justify-content: stretch; }
-  .toggle-btn { flex: 1; font-size: 13px; padding: 8px 10px; min-height: 36px; }
+  .chat-head { align-items: center; }
+  .flow-switch { justify-content: space-between; font-size: 13px; min-height: 36px; }
 
   .chat-note { padding: 8px 12px; }
 

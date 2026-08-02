@@ -12,10 +12,9 @@ const els = {
   stopBtn: document.getElementById("stopBtn"),
   cameraLabel: document.getElementById("cameraLabel"),
   cameraSelect: document.getElementById("cameraSelect"),
-  chatWrap: document.getElementById("chatWrap"),
   chatList: document.getElementById("chatList"),
   chatNote: document.getElementById("chatNote"),
-  displayToggle: document.getElementById("displayToggle"),
+  flowToggle: document.getElementById("flowToggle"),
   danmakuLayer: document.getElementById("danmakuLayer"),
   liveBadge: document.getElementById("liveBadge"),
   viewers: document.getElementById("viewers"),
@@ -62,7 +61,7 @@ const state = {
   log: [],               // 表示したコメントのログ（振り返り用）
   viewers: 0,
   nameColors: {},
-  displayMode: "chat", // "chat" = チャット欄 / "flow" = ニコニコ風に流す
+  flowEnabled: false, // ONの時だけニコニコ風コメントを映像上にも流す
   // 音声まわり
   audioCtx: null,
   analyser: null,
@@ -389,10 +388,9 @@ function staggerComments(comments) {
 // ==========================================================
 // 画面に表示する視聴者コメント
 function addMessage(name, text, type) {
-  if (state.displayMode === "flow") {
+  addChatMessage(name, text, type);
+  if (state.flowEnabled) {
     addFlowComment(name, text);
-  } else {
-    addChatMessage(name, text, type);
   }
 
   pushHistory(name, text);
@@ -434,18 +432,9 @@ function addFlowComment(name, text) {
   els.danmakuLayer.appendChild(div);
 }
 
-// ---- コメント表示モードの切り替え ----
-els.displayToggle.addEventListener("click", (e) => {
-  const btn = e.target.closest(".toggle-btn");
-  if (!btn) return;
-  const mode = btn.dataset.mode;
-  if (mode === state.displayMode) return;
-  state.displayMode = mode;
-
-  els.displayToggle.querySelectorAll(".toggle-btn").forEach((b) => {
-    b.classList.toggle("active", b.dataset.mode === mode);
-  });
-  els.chatWrap.classList.toggle("mode-flow", mode === "flow");
+// ---- コメント流しのON/OFF ----
+els.flowToggle.addEventListener("change", () => {
+  state.flowEnabled = els.flowToggle.checked;
 });
 
 // 画面には出さず、AIへの文脈だけに残す（自分の発言はこちら）
