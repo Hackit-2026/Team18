@@ -1,77 +1,61 @@
-# チーム名
+# PORT設定
 
-404 Forbidden（読み：よんまるさん フォービドゥン）（意味：HTTPステータスコードの1つ、ログインしていても権限がなくて見られない）
-
-# プロダクト名
-
-AI Streaming「あいづち | AIZUCHI」
-
-## 概要
-
-現在、一人で作業しているときに、自分の行動に対する反応をリアルタイムで得るには、実際にライブ配信を行う方法がある。しかしながら、配信を始めても必ず視聴者が集まるとは限らず、自分の映像を不特定多数へ公開することに抵抗を感じる人もいる。一方で理想は、一人で気軽に行動できる状態を保ちながら、誰かから反応を受け取り、体験を共有している感覚を得られることである。現状では、不特定多数への公開に対する不安を抱えずに、その場に合った反応をリアルタイムで受け取る手段が少ない。この現状と理想の差が、本プロダクトで解決したい問題となる。この差を埋めるため、利用者の状況に合った自然なコメントを継続して生み出し、安心して疑似的なライブ配信を楽しめる環境を整えることを課題とした。
-
-## デモ
-
-以下を掲載してください。
-
-- 発表資料URL（必須）
-- デモURL（任意）
-- デモ動画（任意）
-- スクリーンショット（1枚以上推奨）
-
-## システム構成
-
-アプリケーション全体の構成が分かる図や説明を記載してください。
-
-## 背景・課題
-
-なぜこのプロダクトを作ったのか、どのような課題を解決したいのかを記載してください。
-
-## 主な機能
-
-- 機能1
-- 機能2
-- 機能3
-
-## 工夫した点・こだわった点
-
-技術面・UI/UX・アイデア面など、特に工夫した点やチャレンジした点を記載してください。
-
-## 使用技術
-
-- フロントエンド：
-- バックエンド：
-- AI / API：
-- データベース：
-- インフラ：
-- その他：
-
-## 今後の展望
-
-今後追加したい機能や改善したい点を記載してください。
-
-## セットアップ方法
-
-ローカルで実行する場合の手順を記載してください。
-
-例
-
-```bash
-git clone <repository-url>
-cd <repository-name>
-
-# 必要なライブラリをインストール
-...
-
-# 起動
-...
+```
+3000：AIRS
+8080：コメント生成
+8081：画像認識
+8082：音声認識
 ```
 
-## メンバー
+# ローカルモデルの起動
 
-| 名前 | 担当 |
-|------|------|
-| 永井 駿矢 | 〇〇 |
-| 宮本 英幸 | 〇〇 |
-| 中林 涼 | 〇〇 |
-| 滝澤 寛正 | 〇〇 |
+## text→comment
+
+Apple Silicon Macの場合：
+
+```
+llama-server \
+  -m ./models/model.gguf \
+  --alias local-comments \
+  --host 127.0.0.1 \
+  --port 8080 \
+  -c 2048 \
+  -ngl 99
+ 
+```
+
+## image→text
+
+llama-server \
+-hf LiquidAI/LFM2.5-VL-1.6B-GGUF:Q4_K_M \
+--alias local-vision \
+--host 127.0.0.1 \
+--port 8081 \
+-c 4096 \
+-ngl 99
+
+### 音声ー＞テキスト
+
+FFmpegをインストールする
+
+ブラウザから届くWebM音声をWAVへ変換するために使います。
+
+brew install ffmpeg
+
+### 起動方法
+
+models/audio/runners/macos-arm64/llama-liquid-audio-macos-arm64/llama-liquid-audio-server \
+-m models/audio/LFM2.5-Audio-1.5B-JP-Q4_0.gguf \
+-mm models/audio/mmproj-LFM2.5-Audio-1.5B-JP-Q4_0.gguf \
+-mv models/audio/vocoder-LFM2.5-Audio-1.5B-JP-Q4_0.gguf \
+--tts-speaker-file models/audio/tokenizer-LFM2.5-Audio-1.5B-JP-Q4_0.gguf \
+--host 127.0.0.1 \
+--port 8082
+
+# 参考文献
+
+テキストからコメント生成：https://unsloth.ai/docs/models/tutorials/lfm2.5
+
+画像からテキスト：https://huggingface.co/LiquidAI/LFM2.5-VL-1.6B-GGUF
+
+音声からテキスト：https://huggingface.co/LiquidAI/LFM2.5-Audio-1.5B-JP-GGUF
