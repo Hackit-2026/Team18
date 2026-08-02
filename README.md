@@ -1,75 +1,16 @@
-# チーム名
+# 活動内容
+音声からテキスト
+https://liquid4all-cookbook.mintlify.app/examples/audio-transcription-cli 
 
-チーム名を記載してください。
 
-# プロダクト名
 
-プロダクト名を記載してください。
+##　気づき
+backend/model/cookbook/example/audio-transcription-cli/download_audio_samples.py
+モジュール：
+pyaudio = そのportaudioを、Pythonから使えるようにする橋渡し
 
-## 概要
 
-何を作ったのかを3〜5行程度で説明してください。
+最初は用意されている'./audio-samples/barackobamafederalplaza.mp3'を使ってオバマ大統領の演説の音声をテキストに変換した
 
-## デモ
-
-以下を掲載してください。
-
-- 発表資料URL（必須）
-- デモURL（任意）
-- デモ動画（任意）
-- スクリーンショット（1枚以上推奨）
-
-## システム構成
-
-アプリケーション全体の構成が分かる図や説明を記載してください。
-
-## 背景・課題
-
-なぜこのプロダクトを作ったのか、どのような課題を解決したいのかを記載してください。
-
-## 主な機能
-
-- 機能1
-- 機能2
-- 機能3
-
-## 工夫した点・こだわった点
-
-技術面・UI/UX・アイデア面など、特に工夫した点やチャレンジした点を記載してください。
-
-## 使用技術
-
-- フロントエンド：
-- バックエンド：
-- AI / API：
-- データベース：
-- インフラ：
-- その他：
-
-## 今後の展望
-
-今後追加したい機能や改善したい点を記載してください。
-
-## セットアップ方法
-
-ローカルで実行する場合の手順を記載してください。
-
-例
-
-```bash
-git clone <repository-url>
-cd <repository-name>
-
-# 必要なライブラリをインストール
-...
-
-# 起動
-...
-```
-
-## メンバー
-
-| 名前 | 担当 |
-|------|------|
-|      |      |
-|      |      |
+テキスト文
+I don't oppose war inWhen I look out over this crowd today,Today, I know there is no short.No shortage of patriots.Or patriotism.What I do oppose.Pose is a dumb war.War
