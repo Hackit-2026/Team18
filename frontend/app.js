@@ -122,11 +122,15 @@ function updateUserDisplay(name) {
 
 function showUserModal(isEditing = false) {
   clearTimeout(state.onboardingTimer);
+  els.startupMessage.classList.remove("step-leaving");
+  els.userForm.classList.remove("step-leaving");
+  els.welcomeMessage.classList.remove("step-leaving", "show-tagline");
   els.userModalTitle.textContent = isEditing ? "ユーザー名を変更" : "ユーザー名を決めましょう";
   els.userNameInput.value = state.userName;
   els.userError.textContent = "";
   els.cancelUser.hidden = !isEditing;
   els.userModal.hidden = false;
+  els.userModal.classList.remove("is-leaving");
   els.userModal.classList.toggle("onboarding-mode", !isEditing);
   els.startupMessage.hidden = true;
   els.welcomeMessage.hidden = true;
@@ -142,14 +146,19 @@ function showUserModal(isEditing = false) {
 }
 
 function showOnboardingForm() {
-  els.startupMessage.hidden = true;
-  els.welcomeMessage.hidden = true;
-  els.userForm.hidden = false;
-  els.userModalTitle.textContent = "ユーザー名を決めましょう";
-  els.userNameInput.value = state.userName;
-  els.userError.textContent = "";
-  els.cancelUser.hidden = true;
-  els.userNameInput.focus();
+  clearTimeout(state.onboardingTimer);
+  els.startupMessage.classList.add("step-leaving");
+  state.onboardingTimer = setTimeout(() => {
+    els.startupMessage.hidden = true;
+    els.startupMessage.classList.remove("step-leaving");
+    els.welcomeMessage.hidden = true;
+    els.userForm.hidden = false;
+    els.userModalTitle.textContent = "ユーザー名を決めましょう";
+    els.userNameInput.value = state.userName;
+    els.userError.textContent = "";
+    els.cancelUser.hidden = true;
+    els.userNameInput.focus();
+  }, 750);
 }
 
 function playSmoke() {
@@ -160,16 +169,34 @@ function playSmoke() {
 
 function playWelcome(name) {
   clearTimeout(state.onboardingTimer);
-  els.userForm.hidden = true;
-  els.startupMessage.hidden = true;
   els.welcomeName.textContent = name;
-  els.welcomeMessage.hidden = false;
-  playSmoke();
+  els.welcomeMessage.classList.remove("headline-leaving", "show-tagline", "tagline-leaving", "step-leaving");
+  els.userForm.classList.add("step-leaving");
   state.onboardingTimer = setTimeout(() => {
-    els.userModal.hidden = true;
-    els.userModal.classList.remove("onboarding-mode");
-    els.welcomeMessage.hidden = true;
-  }, 2200);
+    els.userForm.hidden = true;
+    els.userForm.classList.remove("step-leaving");
+    els.startupMessage.hidden = true;
+    els.welcomeMessage.hidden = false;
+    playSmoke();
+    state.onboardingTimer = setTimeout(() => {
+      els.welcomeMessage.classList.add("headline-leaving");
+      state.onboardingTimer = setTimeout(() => {
+        els.welcomeMessage.classList.add("show-tagline");
+        state.onboardingTimer = setTimeout(() => {
+          els.welcomeMessage.classList.add("tagline-leaving");
+          state.onboardingTimer = setTimeout(() => {
+            els.userModal.classList.add("is-leaving");
+            state.onboardingTimer = setTimeout(() => {
+              els.userModal.hidden = true;
+              els.userModal.classList.remove("onboarding-mode", "is-leaving");
+              els.welcomeMessage.classList.remove("headline-leaving", "show-tagline", "tagline-leaving");
+              els.welcomeMessage.hidden = true;
+            }, 1100);
+          }, 1100);
+        }, 2100);
+      }, 850);
+    }, 1600);
+  }, 750);
 }
 
 function initializeUser() {
