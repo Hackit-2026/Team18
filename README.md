@@ -9,7 +9,7 @@
 **AI Streaming『あいづち | AIZUCHI』**
 
 <p align="center">
-  <img src="./assets/aizuchi-symbol.png" alt="あいづち シンボルロゴ" width="260">
+  <img width="1448" height="1086" alt="Image" src="https://github.com/user-attachments/assets/61ae3311-a6bb-404f-907f-e741a0598f7f" />
 </p>
 
 <p align="center">
