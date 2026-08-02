@@ -1,6 +1,4 @@
 // AIプロバイダー実装: OpenAI
-// 自作モデルに差し替えたい場合は providers/custom.js に同じ関数を実装し、
-// .env の AI_PROVIDER=custom に切り替えるだけでよい（providers/index.js 参照）。
 
 import OpenAI, { toFile } from "openai";
 import { randomName } from "../shared.js";
@@ -81,30 +79,47 @@ function parseComments(raw) {
   }
 }
 
-// 映像フレーム(画像)を見て、視聴者コメントを生成する
-export async function reactToImage({ image, historyText }) {
-  const userContent = [
-    {
-      type: "text",
-      text:
-        "これが今の配信画面です。視聴者としてコメントしてください。\n" +
-        "直近のコメント履歴:\n" + historyText,
-    },
-    { type: "image_url", image_url: { url: image, detail: "low" } },
-  ];
+// OpenAIで画像を説明文へ変換する。
+// ここではコメントを生成せず、画像の内容だけをテキスト化する。
+export async function describeImage({ image }) {
+  const completion =
+    await getClient().chat.completions.create({
+      model: visionModel(),
+      temperature: 0.2,
+      max_tokens: 150,
+      messages: [
+        {
+          role: "system",
+          content: [
+            "あなたは配信画面の画像認識担当です。",
+            "画像に実際に映っている内容を、日本語で簡潔に説明してください。",
+            "人物の特定や推測はせず、見える物・行動・場所・文字を客観的に説明してください。",
+            "視聴者コメントは生成しないでください。",
+          ].join("\n"),
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text:
+                "現在の配信画面を、コメント生成用の説明文にしてください。",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: image,
+                detail: "low",
+              },
+            },
+          ],
+        },
+      ],
+    });
 
-  const completion = await getClient().chat.completions.create({
-    model: visionModel(),
-    temperature: 0.9,
-    max_tokens: 300,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: buildSystemPrompt() },
-      { role: "user", content: userContent },
-    ],
-  });
-
-  return parseComments(completion.choices[0]?.message?.content);
+  return (
+    completion.choices[0]?.message?.content?.trim() || ""
+  );
 }
 
 // 音声(Buffer)を文字起こしする

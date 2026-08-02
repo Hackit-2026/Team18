@@ -1,8 +1,6 @@
 // AIRS - AI-ReactionStream
 // バックエンド: 映像フレーム/音声を受け取り、AIプロバイダー(providers/)経由で
 // 「大勢の視聴者がコメントしているような」リアクションを生成して返す。
-// 使用するAIプロバイダーは .env の AI_PROVIDER で切り替えられる（openai / custom）。
-// 自作モデルに差し替えたい場合は providers/custom.js を実装すればよい。
 
 import dotenv from "dotenv";
 import express from "express";
@@ -16,9 +14,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const PORT = process.env.PORT || 3000;
-const AI_PROVIDER = process.env.AI_PROVIDER || "openai";
+if (!process.env.OPENAI_API_KEY) {
+  console.warn(
+    "\n[警告] OPENAI_API_KEY が設定されていません。" +
+      "\n画像認識と音声文字起こしにはAPIキーが必要です。\n",
+  );
+}
 
-if (AI_PROVIDER === "openai" && !process.env.OPENAI_API_KEY) {
+if (!process.env.OPENAI_API_KEY) {
   console.warn(
     "\n[警告] OPENAI_API_KEY が設定されていません。" +
       "\n  .env に OPENAI_API_KEY を設定してください。\n"
@@ -112,5 +115,13 @@ app.post("/api/summary", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`\nAIRS 起動: http://localhost:${PORT}`);
-  console.log(`  AIプロバイダー: ${AI_PROVIDER}\n`);
+  console.log("  画像認識: OpenAI");
+  console.log("  音声文字起こし: OpenAI");
+  console.log("  コメント生成: ローカル model.gguf");
+  console.log(
+    `  ローカルLLM: ${
+      process.env.LOCAL_LLM_URL ||
+      "http://127.0.0.1:8080/v1/chat/completions"
+    }\n`,
+  );
 });
