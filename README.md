@@ -2,11 +2,11 @@
 
 **403 Forbidden**
 
-読みは、よんまるさん フォービドゥン。HTTPステータスコードの一つで、ログインしていても権限がないためページを閲覧できない状態を意味する。
+読み：よんまるさん フォービドゥン、HTTPステータスコードの一つで、ログインしていても権限がないためページを閲覧できない状態を意味する。
 
 # プロダクト名
 
-**AI Streaming あいづち | AIZUCHI**
+**AI Streaming『あいづち | AIZUCHI』**
 
 <p align="center">
   <img src="./assets/aizuchi-symbol.png" alt="あいづち シンボルロゴ" width="260">
