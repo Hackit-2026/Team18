@@ -8,7 +8,6 @@ const els = {
   capture: document.getElementById("capture"),
   startOverlay: document.getElementById("startOverlay"),
   startBtn: document.getElementById("startBtn"),
-  startArchiveBtn: document.getElementById("startArchiveBtn"),
   videoControls: document.getElementById("videoControls"),
   stopBtn: document.getElementById("stopBtn"),
   cameraLabel: document.getElementById("cameraLabel"),
@@ -163,7 +162,7 @@ function playWelcome(name) {
   clearTimeout(state.onboardingTimer);
   els.userForm.hidden = true;
   els.startupMessage.hidden = true;
-  els.welcomeName.textContent = `“${name}”`;
+  els.welcomeName.textContent = name;
   els.welcomeMessage.hidden = false;
   playSmoke();
   state.onboardingTimer = setTimeout(() => {
@@ -760,7 +759,6 @@ async function openArchiveCalendar({ browseAll = false, fromLanding = false } = 
 
 // ---- イベント登録 ----
 els.startBtn.addEventListener("click", start);
-els.startArchiveBtn.addEventListener("click", openArchiveCalendar);
 els.stopBtn.addEventListener("click", stop);
 els.userBtn.addEventListener("click", () => showUserModal(true));
 els.logoutBtn.addEventListener("click", logoutUser);
