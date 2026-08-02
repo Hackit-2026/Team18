@@ -22,6 +22,7 @@ const els = {
   summaryModal: document.getElementById("summaryModal"),
   summaryText: document.getElementById("summaryText"),
   closeSummary: document.getElementById("closeSummary"),
+  
 };
 
 const state = {
