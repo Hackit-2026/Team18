@@ -44,3 +44,12 @@ export async function summarize({ logText }) {
     "providers/custom.js の summarize が未実装です。自作APIの呼び出しをここに実装してください。"
   );
 }
+
+// 配信ログ全体から、配信タイトルを生成する。
+// logText: 配信中に表示されたコメントをまとめた文字列
+// 戻り値: 配信タイトル（string）
+export async function generateTitle({ logText }) {
+  throw new Error(
+    "providers/custom.js の generateTitle が未実装です。自作APIの呼び出しをここに実装してください。"
+  );
+}

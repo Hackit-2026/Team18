@@ -24,4 +24,5 @@ export default {
   transcribeAudio: (args) => currentProvider().transcribeAudio(args),
   reactToTranscript: (args) => currentProvider().reactToTranscript(args),
   summarize: (args) => currentProvider().summarize(args),
+  generateTitle: (args) => currentProvider().generateTitle(args),
 };

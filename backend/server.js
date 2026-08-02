@@ -89,24 +89,32 @@ app.post("/api/voice", upload.single("audio"), async (req, res) => {
 
 // ============================================================
 // POST /api/summary
-// 配信ログを受け取り、盛り上がった場面を短く振り返る
+// 配信ログを受け取り、タイトルと盛り上がった場面の振り返りを生成
 // body: { log: [{name,text}] }
 // ============================================================
 app.post("/api/summary", async (req, res) => {
   try {
     const { log = [] } = req.body;
-    if (!log.length) return res.json({ summary: "コメントがまだありませんでした。" });
+    if (!log.length) {
+      return res.json({
+        title: "静かなライブ",
+        summary: "コメントがまだありませんでした。",
+      });
+    }
 
     const logText = log
       .slice(-60)
       .map((c) => `${c.name || "誰か"}: ${c.text}`)
       .join("\n");
 
-    const summary = await provider.summarize({ logText });
-    res.json({ summary });
+    const [title, summary] = await Promise.all([
+      provider.generateTitle({ logText }),
+      provider.summarize({ logText }),
+    ]);
+    res.json({ title: title || "配信アーカイブ", summary });
   } catch (err) {
     console.error("/api/summary エラー:", err.message);
-    res.status(500).json({ error: "振り返りの生成に失敗しました", detail: err.message });
+    res.status(500).json({ error: "タイトルと振り返りの生成に失敗しました", detail: err.message });
   }
 });
 

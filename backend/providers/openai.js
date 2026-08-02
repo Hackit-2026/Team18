@@ -161,3 +161,27 @@ export async function summarize({ logText }) {
 
   return completion.choices[0]?.message?.content?.trim() || "";
 }
+
+// 配信ログから配信タイトルを生成する
+export async function generateTitle({ logText }) {
+  const completion = await getClient().chat.completions.create({
+    model: textModel(),
+    temperature: 0.9,
+    max_tokens: 80,
+    messages: [
+      {
+        role: "system",
+        content:
+          "あなたは配信アーカイブのタイトルを考える係です。" +
+          "視聴者コメントのログから配信内容を推測し、短く印象に残る日本語タイトルを1つだけ作ってください。" +
+          "「今日の配信」「振り返り」という言葉は使わないでください。" +
+          "記号で飾りすぎず、20文字以内を目安にしてください。",
+      },
+      { role: "user", content: "今回の配信のコメントログ:\n" + logText },
+    ],
+  });
+
+  return (completion.choices[0]?.message?.content || "")
+    .replace(/^["「『]|["」』]$/g, "")
+    .trim();
+}
