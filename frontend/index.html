@@ -14,6 +14,12 @@
         <span class="brand-sub">AI-ReactionStream</span>
       </div>
       <div class="live-status" id="liveStatus">
+        <button class="user-chip" id="userBtn" type="button" aria-label="ユーザー名を変更">
+          <span class="user-avatar" id="userAvatar">?</span>
+          <span id="userName">未設定</span>
+        </button>
+        <button class="logout-btn" id="logoutBtn" type="button">ログアウト</button>
+        <button class="archive-open" id="archiveBtn" type="button">📅 アーカイブ</button>
         <span class="live-badge" id="liveBadge">OFFLINE</span>
         <span class="viewers" id="viewers">👤 0</span>
       </div>
@@ -56,12 +62,77 @@
       </aside>
     </main>
 
+    <!-- 初回ユーザー名設定 -->
+    <div class="modal user-modal" id="userModal" hidden>
+      <div class="fluffy-bg" aria-hidden="true">
+        <span class="fluffy fluffy-blue"></span>
+        <span class="fluffy fluffy-rainbow"></span>
+        <span class="fluffy fluffy-soft"></span>
+      </div>
+      <div class="smoke-stage" id="smokeStage" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <section class="onboarding-message startup-message" id="startupMessage" hidden>
+        <span class="onboarding-logo-dot"></span>
+        <p>あいずち</p>
+        <small>AI-ReactionStream</small>
+      </section>
+      <form class="modal-card user-card" id="userForm" hidden>
+        <h2 id="userModalTitle">ユーザー名を決めましょう</h2>
+        <p class="user-help">配信アーカイブと振り返りは、このユーザー名で整理されます。</p>
+        <label class="user-label" for="userNameInput">ユーザー名</label>
+        <input id="userNameInput" class="user-input" type="text" maxlength="20" autocomplete="nickname" required />
+        <p class="user-error" id="userError" role="alert"></p>
+        <div class="modal-actions">
+          <button class="btn btn-stop" id="cancelUser" type="button" hidden>キャンセル</button>
+          <button class="btn btn-primary" type="submit">この名前ではじめる</button>
+        </div>
+      </form>
+      <section class="onboarding-message welcome-message" id="welcomeMessage" hidden>
+        <p>ようこそ</p>
+        <h2 id="welcomeName"></h2>
+        <small>あなたの配信を、今日から記録します。</small>
+      </section>
+    </div>
+
     <!-- 振り返りモーダル -->
     <div class="modal" id="summaryModal" hidden>
       <div class="modal-card">
         <h2>今日の配信の振り返り</h2>
         <p class="modal-body" id="summaryText">まとめています…</p>
-        <button class="btn btn-primary" id="closeSummary">とじる</button>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="viewArchive">カレンダーで見る</button>
+          <button class="btn btn-stop" id="closeSummary">とじる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 配信アーカイブカレンダー -->
+    <div class="modal archive-modal" id="archiveModal" hidden>
+      <div class="archive-card">
+        <div class="archive-head">
+          <div>
+            <p class="archive-kicker">STREAM LIBRARY</p>
+            <h2>配信アーカイブ</h2>
+          </div>
+          <button class="icon-btn" id="closeArchive" type="button" aria-label="閉じる">×</button>
+        </div>
+        <div class="archive-layout">
+          <section class="calendar-panel">
+            <div class="calendar-nav">
+              <button class="icon-btn" id="prevMonth" type="button" aria-label="前の月">‹</button>
+              <h3 id="calendarTitle"></h3>
+              <button class="icon-btn" id="nextMonth" type="button" aria-label="次の月">›</button>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+          </section>
+          <section class="archive-detail" id="archiveDetail">
+            <div class="archive-empty">日付を選ぶと、配信アーカイブと振り返りを確認できます。</div>
+          </section>
+        </div>
       </div>
     </div>
 
