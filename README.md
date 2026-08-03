@@ -39,21 +39,22 @@ AI Streaming『あいづち | AIZUCHI』は、自分の映像をインターネ�
 
 - 発表資料URL：[あいづち発表資料を見る](https://github.com/user-attachments/files/30640531/_.pdf)
 - 起動方法：`backend`ディレクトリに入った状態で、`npm start`を打ち込んでサーバーを起動する。
-- <p align="center">
-  <a href="https://github.com/user-attachments/assets/421488d0-dffa-4fc4-836d-77b244df265a">
-    <img
-      src="https://github.com/user-attachments/assets/421488d0-dffa-4fc4-836d-77b244df265a"
-      alt="あいづち アプリ画面1"
-      width="800"
-    >
-  </a>
-</p>
 
 <p align="center">
   <a href="https://github.com/user-attachments/assets/43ef00fe-553f-4e6b-8be0-749410fb597a">
     <img
       src="https://github.com/user-attachments/assets/43ef00fe-553f-4e6b-8be0-749410fb597a"
       alt="あいづち アプリ画面2"
+      width="800"
+    >
+  </a>
+</p>
+
+- <p align="center">
+  <a href="https://github.com/user-attachments/assets/421488d0-dffa-4fc4-836d-77b244df265a">
+    <img
+      src="https://github.com/user-attachments/assets/421488d0-dffa-4fc4-836d-77b244df265a"
+      alt="あいづち アプリ画面1"
       width="800"
     >
   </a>
