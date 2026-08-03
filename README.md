@@ -183,21 +183,7 @@ flowchart LR
 
 ## セットアップ方法
 
-次のコマンドを基にリポジトリを取得し、必要なライブラリと環境変数を設定する。実際の構成に合わせて、山括弧内を使用するコマンドへ置き換える。
-
-```bash
-git clone <repository-url>
-cd <repository-name>
-
-# 必要なライブラリをインストール
-<install-command>
-
-# 環境変数を設定
-<environment-setup-command>
-
-# アプリケーションを起動
-<start-command>
-```
+モデルのインストール方法等セットアップ方法に関しては、バックエンドの側により詳細に記したREADME.mdを置いております。そちらをご確認ください！
 
 ## メンバー
 
