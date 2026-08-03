@@ -158,21 +158,36 @@ flowchart LR
 
 ## セットアップ方法
 
-次のコマンドを基にリポジトリを取得し、必要なライブラリと環境変数を設定する。実際の構成に合わせて、山括弧内を使用するコマンドへ置き換える。
+Node.js、ffmpeg、各ローカルモデルサーバーを先に準備する。GGUFなどの大容量ファイルはGitへ含めず、`backend/models/` へ配置する。
 
 ```bash
 git clone <repository-url>
 cd <repository-name>
-
-# 必要なライブラリをインストール
-<install-command>
-
-# 環境変数を設定
-<environment-setup-command>
-
-# アプリケーションを起動
-<start-command>
+cd backend
+npm install
+cp .env.example .env
+npm start
 ```
+
+バックエンドを起動する前に、次のローカルAPIが利用できる状態にする。
+
+| ポート | 用途 | モデル名 |
+|---:|---|---|
+| 8080 | コメント生成 | `local-comments` |
+| 8081 | 画像説明 | `local-vision` |
+| 8082 | 音声文字起こし | LiquidAI LFM2.5-Audio |
+| 8083 | 配信要約 | `local-summary` |
+
+## ローカルAIモデル
+
+コメント生成と配信要約には、Liquid AIの小型言語モデル `LFM2.5-1.2B-Instruct` を基盤として使用している。独自に収集・整形したデータでLoRAファインチューニングを行い、Macで動かせるGGUF（Q4_K_M）形式へ変換した。コメント生成用と要約用は目的が異なるため、別々のGGUFとして管理する。
+
+### 参考文献
+
+- [LiquidAI/LFM2.5-1.2B-Instruct](https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct)
+- [Unsloth版 LFM2.5-1.2B-Instruct](https://huggingface.co/unsloth/LFM2.5-1.2B-Instruct)
+- [LFM2 Technical Report](https://arxiv.org/abs/2511.23404)
+- [llama.cpp](https://github.com/ggml-org/llama.cpp)
 
 ## メンバー
 
