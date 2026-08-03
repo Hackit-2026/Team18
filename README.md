@@ -42,20 +42,6 @@ AI Streaming『あいづち | AIZUCHI』は、自分の映像をインターネ�
 - デモ動画：`ここにURLを記入`
 - スクリーンショット：`docs/images/demo-screen.png` に配置予定
 
-スクリーンショットをリポジトリへ追加した後、次の一行をREADME.mdへ記載すると画像を表示できる。
-
-```markdown
-![あいづちの配信画面](./docs/images/demo-screen.png)
-```
-
-画像の横幅を指定して中央に配置する場合は、Markdown内でHTMLを使用できる。
-
-```html
-<p align="center">
-  <img src="./docs/images/demo-screen.png" alt="あいづちの配信画面" width="800">
-</p>
-```
-
 ## システム構成
 
 ```mermaid
