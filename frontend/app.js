@@ -12,10 +12,9 @@ const els = {
   stopBtn: document.getElementById("stopBtn"),
   cameraLabel: document.getElementById("cameraLabel"),
   cameraSelect: document.getElementById("cameraSelect"),
-  chatWrap: document.getElementById("chatWrap"),
   chatList: document.getElementById("chatList"),
   chatNote: document.getElementById("chatNote"),
-  displayToggle: document.getElementById("displayToggle"),
+  flowToggle: document.getElementById("flowToggle"),
   danmakuLayer: document.getElementById("danmakuLayer"),
   liveBadge: document.getElementById("liveBadge"),
   viewers: document.getElementById("viewers"),
@@ -62,7 +61,7 @@ const state = {
   log: [],               // 表示したコメントのログ（振り返り用）
   viewers: 0,
   nameColors: {},
-  displayMode: "chat", // "chat" = チャット欄 / "flow" = ニコニコ風に流す
+  flowEnabled: false, // ONの時だけニコニコ風コメントを映像上にも流す
   // 音声まわり
   audioCtx: null,
   analyser: null,
@@ -122,11 +121,15 @@ function updateUserDisplay(name) {
 
 function showUserModal(isEditing = false) {
   clearTimeout(state.onboardingTimer);
+  els.startupMessage.classList.remove("step-leaving");
+  els.userForm.classList.remove("step-leaving");
+  els.welcomeMessage.classList.remove("step-leaving", "show-tagline");
   els.userModalTitle.textContent = isEditing ? "ユーザー名を変更" : "ユーザー名を決めましょう";
   els.userNameInput.value = state.userName;
   els.userError.textContent = "";
   els.cancelUser.hidden = !isEditing;
   els.userModal.hidden = false;
+  els.userModal.classList.remove("is-leaving");
   els.userModal.classList.toggle("onboarding-mode", !isEditing);
   els.startupMessage.hidden = true;
   els.welcomeMessage.hidden = true;
@@ -142,14 +145,19 @@ function showUserModal(isEditing = false) {
 }
 
 function showOnboardingForm() {
-  els.startupMessage.hidden = true;
-  els.welcomeMessage.hidden = true;
-  els.userForm.hidden = false;
-  els.userModalTitle.textContent = "ユーザー名を決めましょう";
-  els.userNameInput.value = state.userName;
-  els.userError.textContent = "";
-  els.cancelUser.hidden = true;
-  els.userNameInput.focus();
+  clearTimeout(state.onboardingTimer);
+  els.startupMessage.classList.add("step-leaving");
+  state.onboardingTimer = setTimeout(() => {
+    els.startupMessage.hidden = true;
+    els.startupMessage.classList.remove("step-leaving");
+    els.welcomeMessage.hidden = true;
+    els.userForm.hidden = false;
+    els.userModalTitle.textContent = "ユーザー名を決めましょう";
+    els.userNameInput.value = state.userName;
+    els.userError.textContent = "";
+    els.cancelUser.hidden = true;
+    els.userNameInput.focus();
+  }, 750);
 }
 
 function playSmoke() {
@@ -160,16 +168,34 @@ function playSmoke() {
 
 function playWelcome(name) {
   clearTimeout(state.onboardingTimer);
-  els.userForm.hidden = true;
-  els.startupMessage.hidden = true;
   els.welcomeName.textContent = name;
-  els.welcomeMessage.hidden = false;
-  playSmoke();
+  els.welcomeMessage.classList.remove("headline-leaving", "show-tagline", "tagline-leaving", "step-leaving");
+  els.userForm.classList.add("step-leaving");
   state.onboardingTimer = setTimeout(() => {
-    els.userModal.hidden = true;
-    els.userModal.classList.remove("onboarding-mode");
-    els.welcomeMessage.hidden = true;
-  }, 2200);
+    els.userForm.hidden = true;
+    els.userForm.classList.remove("step-leaving");
+    els.startupMessage.hidden = true;
+    els.welcomeMessage.hidden = false;
+    playSmoke();
+    state.onboardingTimer = setTimeout(() => {
+      els.welcomeMessage.classList.add("headline-leaving");
+      state.onboardingTimer = setTimeout(() => {
+        els.welcomeMessage.classList.add("show-tagline");
+        state.onboardingTimer = setTimeout(() => {
+          els.welcomeMessage.classList.add("tagline-leaving");
+          state.onboardingTimer = setTimeout(() => {
+            els.userModal.classList.add("is-leaving");
+            state.onboardingTimer = setTimeout(() => {
+              els.userModal.hidden = true;
+              els.userModal.classList.remove("onboarding-mode", "is-leaving");
+              els.welcomeMessage.classList.remove("headline-leaving", "show-tagline", "tagline-leaving");
+              els.welcomeMessage.hidden = true;
+            }, 1100);
+          }, 1100);
+        }, 2100);
+      }, 850);
+    }, 1600);
+  }, 750);
 }
 
 function initializeUser() {
@@ -362,10 +388,9 @@ function staggerComments(comments) {
 // ==========================================================
 // 画面に表示する視聴者コメント
 function addMessage(name, text, type) {
-  if (state.displayMode === "flow") {
+  addChatMessage(name, text, type);
+  if (state.flowEnabled) {
     addFlowComment(name, text);
-  } else {
-    addChatMessage(name, text, type);
   }
 
   pushHistory(name, text);
@@ -407,18 +432,9 @@ function addFlowComment(name, text) {
   els.danmakuLayer.appendChild(div);
 }
 
-// ---- コメント表示モードの切り替え ----
-els.displayToggle.addEventListener("click", (e) => {
-  const btn = e.target.closest(".toggle-btn");
-  if (!btn) return;
-  const mode = btn.dataset.mode;
-  if (mode === state.displayMode) return;
-  state.displayMode = mode;
-
-  els.displayToggle.querySelectorAll(".toggle-btn").forEach((b) => {
-    b.classList.toggle("active", b.dataset.mode === mode);
-  });
-  els.chatWrap.classList.toggle("mode-flow", mode === "flow");
+// ---- コメント流しのON/OFF ----
+els.flowToggle.addEventListener("change", () => {
+  state.flowEnabled = els.flowToggle.checked;
 });
 
 // 画面には出さず、AIへの文脈だけに残す（自分の発言はこちら）
