@@ -176,23 +176,16 @@ flowchart LR
   - dotenv
       - .env による環境変数管理
 
-  - OpenAI SDK
-      - OpenAI APIとの連携
-
   - JavaScript ES Modules
       - import/export を使ったモジュール構成
 
-  AI / API
+  AI基盤モデル
 
   - OpenAI API
-      - 映像フレーム解析: gpt-4o-mini
-      - コメント生成: gpt-4o-mini
-      - 音声文字起こし: whisper-1
-      - 配信振り返り生成: gpt-4o-mini
-
-  - AIプロバイダー切り替え機構
-      - .env の AI_PROVIDER で openai / custom を切り替え可能
-      - providers/custom.js に自作AI APIを接続できる構成
+      - 映像フレーム解析: LFM2.5-VL-1.6B-GGUF
+      - コメント生成: LFM2.5-1.2B-Instruct
+      - 音声文字起こし: LFM2.5-Audio-1.5B-JP-GGUF
+      - 配信振り返り生成: LFM2.5-1.2B-Instruct
 
 ## 今後の展望
 
